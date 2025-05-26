@@ -1,14 +1,14 @@
-<div class="login" fxLayout="row" fxLayoutAlign="center center">
+<div class="login flex-row center-center">
     <mat-card>
-        <mat-card-header fxLayoutAlign="center center">
+        <mat-card-header class="center-center">
             <mat-card-title>Login</mat-card-title>
         </mat-card-header>
         <form class="login-form" [formGroup]="form" (ngSubmit)="submit()">
-            <mat-card-content fxLayout="column">
-                <mat-form-field fxFlex>
+            <mat-card-content class="flex-column">
+                <mat-form-field class="flex">
                     <input matInput placeholder="Email" formControlName="email">
                 </mat-form-field>
-                <mat-form-field fxFlex>
+                <mat-form-field class="flex">
                     <input matInput [type]="hide ? 'password' : 'text'" placeholder="Password"
                         formControlName="password">
                     <button mat-icon-button matSuffix (click)="hide = !hide" [attr.aria-label]="'Hide password'"

@@ -1,5 +1,5 @@
 <div class="app">
-  <mat-toolbar color="primary" fxLayout="row" fxLayoutAlign="space-between center">
+<mat-toolbar color="primary" class="flex-row space-between-center">
     <span>Yoga app</span>
     <div *ngIf="$isLogged() | async; else notLogged">
       <span routerLink="sessions" class="link">Sessions</span>
