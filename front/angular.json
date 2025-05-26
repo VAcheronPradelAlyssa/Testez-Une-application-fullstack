@@ -79,17 +79,17 @@
           "defaultConfiguration": "production"
         },
         "serve": {
-          "builder": "@angular-devkit/build-angular:dev-server",
+          "builder": "@angular-builders/custom-webpack:dev-server",
           "options": {
-            "browserTarget": "project-name:build",
+            "buildTarget": "yoga:build",
             "proxyConfig": "src/proxy.config.json"
           },
           "configurations": {
             "production": {
-              "browserTarget": "yoga:build:production"
+              "buildTarget": "yoga:build:production"
             },
             "development": {
-              "browserTarget": "yoga:build:development"
+              "buildTarget": "yoga:build:development"
             }
           },
           "defaultConfiguration": "development"
@@ -97,13 +97,18 @@
         "serve-coverage": {
           "builder": "@angular-builders/custom-webpack:dev-server",
           "options": {
-            "browserTarget": "yoga:build:e2e"
+            "buildTarget": "yoga:build:e2e"
+          },
+          "configurations": {
+            "production": {
+              "buildTarget": "yoga:build:e2e:production"
+            }
           }
         },
         "extract-i18n": {
           "builder": "@angular-devkit/build-angular:extract-i18n",
           "options": {
-            "browserTarget": "yoga:build"
+            "buildTarget": "yoga:build"
           }
         },
         "test": {
