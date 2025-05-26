@@ -98,7 +98,15 @@ describe('LoginComponent', () => {
 
     expect(component.onError).toBe(true);
   });
+it('should have valid form value after set', () => {
+  const loginData = { email: 'user@example.com', password: 'securePass123' };
+  component.form.setValue(loginData);
 
+  expect(component.form.valid).toBe(true);
+  expect(component.form.value).toEqual(loginData);
+  expect(component.form.controls.email.value).toBe('user@example.com');
+  expect(component.form.controls.password.value).toBe('securePass123');
+});
   it('should invalidate form with missing or invalid fields', () => {
     // Email required
     component.form.setValue({ email: '', password: '123456' });
