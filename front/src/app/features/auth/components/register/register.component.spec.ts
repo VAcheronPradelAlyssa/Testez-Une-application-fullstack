@@ -6,17 +6,22 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { Router } from '@angular/router';
+import { of, throwError } from 'rxjs';
 import { expect } from '@jest/globals';
 
 import { RegisterComponent } from './register.component';
-import { AuthService } from "../../services/auth.service";
-import { throwError } from "rxjs";
+import { AuthService } from '../../services/auth.service';
 
 describe('RegisterComponent', () => {
   let component: RegisterComponent;
   let fixture: ComponentFixture<RegisterComponent>;
+  let authService: AuthService;
+  let routerMock: Partial<Router>;
 
   beforeEach(async () => {
+    routerMock = { navigate: jest.fn() };
+
     await TestBed.configureTestingModule({
       declarations: [RegisterComponent],
       imports: [
@@ -28,11 +33,17 @@ describe('RegisterComponent', () => {
         MatIconModule,
         MatInputModule
       ],
-      providers: [AuthService]
+      providers: [
+        AuthService,
+        { provide: Router, useValue: routerMock }
+      ]
     }).compileComponents();
 
     fixture = TestBed.createComponent(RegisterComponent);
     component = fixture.componentInstance;
+    authService = TestBed.inject(AuthService);
+    // @ts-ignore
+    component['router'] = routerMock as Router;
     fixture.detectChanges();
   });
 
@@ -40,35 +51,52 @@ describe('RegisterComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('Should form value be of type RegisterRequest', () => {
-    const expectedEmail = 'test@test.com';
-    const expectedFirstName = 'firstName';
-    const expectedLastName = 'lastName';
-    const expectedPassword = 'password';
-
-    component.form.controls['email'].setValue(expectedEmail);
-    component.form.controls['firstName'].setValue(expectedFirstName);
-    component.form.controls['lastName'].setValue(expectedLastName);
-    component.form.controls['password'].setValue(expectedPassword);
-
-    component.submit();
-
-    const registerRequest = component.form.value;
-    expect(registerRequest).toEqual({
-      email: expectedEmail,
-      firstName: expectedFirstName,
-      lastName: expectedLastName,
-      password: expectedPassword
+  it('should call register and navigate on success', () => {
+    const spy = jest.spyOn(authService, 'register').mockReturnValue(of(void 0));
+    const navSpy = jest.spyOn(routerMock, 'navigate');
+    component.form.setValue({
+      email: 'test@test.com',
+      firstName: 'first',
+      lastName: 'last',
+      password: 'pass'
     });
+    component.submit();
+    expect(spy).toHaveBeenCalled();
+    expect(navSpy).toHaveBeenCalledWith(['/login']);
+    expect(component.onError).toBe(false);
   });
 
-  it('Should set onError to true when register fails', () => {
-    const authService = TestBed.inject(AuthService);
+  it('should set onError to true on register error', () => {
     jest.spyOn(authService, 'register').mockReturnValue(throwError(() => 'Error'));
-
+    component.form.setValue({
+      email: 'test@test.com',
+      firstName: 'first',
+      lastName: 'last',
+      password: 'pass'
+    });
     component.submit();
-
     expect(component.onError).toBe(true);
   });
 
+  it('should have invalid form with missing fields', () => {
+    // All fields missing
+    component.form.setValue({ email: '', firstName: '', lastName: '', password: '' });
+    expect(component.form.valid).toBe(false);
+
+    // Email missing
+    component.form.setValue({ email: '', firstName: 'f', lastName: 'l', password: 'p' });
+    expect(component.form.valid).toBe(false);
+
+    // Password missing
+    component.form.setValue({ email: 'e@e.com', firstName: 'f', lastName: 'l', password: '' });
+    expect(component.form.valid).toBe(false);
+
+    // First name missing
+    component.form.setValue({ email: 'e@e.com', firstName: '', lastName: 'l', password: 'p' });
+    expect(component.form.valid).toBe(false);
+
+    // Last name missing
+    component.form.setValue({ email: 'e@e.com', firstName: 'f', lastName: '', password: 'p' });
+    expect(component.form.valid).toBe(false);
+  });
 });
