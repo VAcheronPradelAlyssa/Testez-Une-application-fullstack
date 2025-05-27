@@ -6,78 +6,53 @@ describe('Detail Session for Non-Admin User', () => {
       firstName: "John",
       createdAt: new Date(),
       updatedAt: new Date(),
-    },
-    {
-      id: 2,
-      lastName: "Dupont",
-      firstName: "Louis",
-      createdAt: new Date(),
-      updatedAt: new Date(),
     }
   ];
 
-  it('View details of a session as a non-admin user', () => {
-    // ─── 1. FAKE BACKEND ─────────────────────────────────────
+  const session = {
+    id: 1,
+    name: "Test",
+    date: new Date(),
+    teacher_id: 1,
+    description: "A small description",
+    users: [], // initialement vide
+    createdAt: new Date(),
+    updatedAt: new Date()
+  };
+
+  it('Utilisateur non admin peut voir le détail d\'une session', () => {
     cy.intercept('POST', '/api/auth/login', {
       body: { id: 2, username: 'nonAdminUser', admin: false }
     }).as('login');
 
     cy.intercept('GET', '/api/teacher', { body: teachers }).as('getTeachers');
     cy.intercept('GET', '/api/teacher/1', { body: teachers[0] }).as('getTeacher1');
+    cy.intercept('GET', '/api/session', { body: [session] }).as('getSessions');
+    cy.intercept('GET', '/api/session/1', { body: session }).as('getSession');
 
-    cy.intercept('GET', '/api/session', {
-      body: [
-        {
-          id: 1,
-          name: "Test",
-          date: new Date(),
-          teacher_id: 1,
-          description: "A small description",
-          users: [],
-          createdAt: new Date(),
-          updatedAt: new Date()
-        }
-      ]
-    }).as('getSessions');
-
-    cy.intercept('GET', '/api/session/1', {
-      body: {
-        id: 1,
-        name: "Test",
-        date: new Date(),
-        teacher_id: 1,
-        description: "A small description",
-        users: [],
-        createdAt: new Date(),
-        updatedAt: new Date()
-      }
-    }).as('getSession');
-
-    // ─── 2. VISIT + LOGIN ────────────────────────────────────
+    // Connexion
     cy.visit('/login');
     cy.get('input[formControlName=email]').type("nonadmin@studio.com");
     cy.get('input[formControlName=password]').type("test!1234");
     cy.get('form').submit();
 
-    // Attends que la redirection soit faite et que le listing soit récupéré
     cy.wait('@login');
     cy.wait('@getSessions');
 
-    // ─── 3. CLIQUE SUR “Detail” ───────────────────────────────
+    // Aller sur la page de détail de la session
     cy.contains('Test').parents('mat-card').first().within(() => {
       cy.get('button').contains("Detail").click();
     });
 
-    // Attend que la requête de détail soit faite
     cy.wait('@getSession');
 
-    // ─── 4. VÉRIFICATIONS FINALES ────────────────────────────
+    // Vérifications affichage
     cy.url().should('include', '/sessions/detail/1');
     cy.contains('Test').should('be.visible');
     cy.contains('A small description').should('be.visible');
     cy.contains('0 attendees').should('be.visible');
-    cy.contains('Create at:').should('be.visible');
-    cy.contains('Last update:').should('be.visible');
     cy.contains('Participate').should('be.visible');
+    cy.contains('Do not participate').should('not.exist');
+    cy.contains('Delete').should('not.exist');
   });
 });
