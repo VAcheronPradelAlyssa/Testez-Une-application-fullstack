@@ -57,9 +57,7 @@ describe('Session list', () => {
     cy.wait('@getSessions');
     cy.wait(400);
 
-    // Vérifie que les deux sessions sont affichées
-    // ...existing code...
-// Vérifie que les deux sessions sont affichées (filtrage par nom)
+    
 cy.get('mat-card').filter(':contains("Yoga du matin"), :contains("Pilates du soir")');
 cy.contains('Yoga du matin').should('be.visible');
 cy.contains('Pilates du soir').should('be.visible');
