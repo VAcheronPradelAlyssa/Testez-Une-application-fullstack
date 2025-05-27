@@ -3,7 +3,6 @@ describe('Logout', () => {
     cy.visit('/login');
     cy.contains('Login').should('be.visible');
 
-    // Mock du login
     cy.intercept('POST', '/api/auth/login', {
       statusCode: 200,
       body: {
@@ -16,7 +15,6 @@ describe('Logout', () => {
       },
     }).as('loginRequest');
 
-    // Mock de la session utilisateur
     cy.intercept('GET', '/api/session', {
       statusCode: 200,
       body: {
@@ -29,7 +27,7 @@ describe('Logout', () => {
     }).as('sessionRequest');
 
     cy.get('input[formControlName=email]').should('be.visible').type("yoga@studio.com", { delay: 100 });
-    cy.wait(300); // pause pour voir la saisie
+    cy.wait(300);
     cy.get('input[formControlName=password]').should('be.visible').type("test!1234", { delay: 100 });
     cy.wait(300);
     cy.get('form').submit();
@@ -40,11 +38,16 @@ describe('Logout', () => {
   });
 
   it('should log out the user correctly', () => {
-    cy.wait(500); // pause avant le clic
+    cy.wait(500);
     cy.contains('Logout')
       .should('be.visible')
-      .invoke('css', 'box-shadow', '0 0 0 3px #ff0000') // effet visuel
+      .invoke('css', 'box-shadow', '0 0 0 3px #ff0000')
       .click();
     cy.url().should('include', '/');
+    cy.contains('Logout').should('not.exist');
+
+    // Vérifie qu'on ne peut plus accéder à /sessions
+    cy.visit('/sessions');
+    cy.url().should('include', '/login');
   });
 });
