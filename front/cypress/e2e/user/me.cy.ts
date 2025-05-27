@@ -1,10 +1,10 @@
 /// <reference types="cypress" />
 
 describe('E2E Test for Existing User Profile (mock)', () => {
-  it('Should display user information on /me page (mocked)', () => {
-    const email = 'amelie.durand@example.com';
-    const password = 'motdepasse123';
+  const email = 'amelie.durand@example.com';
+  const password = 'motdepasse123';
 
+  beforeEach(() => {
     // Mock login API
     cy.intercept('POST', '/api/auth/login', {
       statusCode: 200,
@@ -15,7 +15,7 @@ describe('E2E Test for Existing User Profile (mock)', () => {
       }
     }).as('loginRequest');
 
-    // Mock GET user API (adapt path and id as in your backend)
+    // Mock GET user API
     cy.intercept('GET', '/api/user/5', {
       statusCode: 200,
       body: {
@@ -28,8 +28,11 @@ describe('E2E Test for Existing User Profile (mock)', () => {
         updatedAt: '2024-05-10T15:42:00Z'
       }
     }).as('getUser');
-cy.intercept('GET', '/api/session', { body: [] }).as('getSessions');
 
+    cy.intercept('GET', '/api/session', { body: [] }).as('getSessions');
+  });
+
+  it('Should display user information on /me page (mocked)', () => {
     // Visit login page and perform login
     cy.visit('/login');
     cy.get('input[formControlName=email]').type(email);
@@ -56,5 +59,36 @@ cy.intercept('GET', '/api/session', { body: [] }).as('getSessions');
     cy.wait('@getUser');
     cy.get('p').contains('Name: Amélie DURAND');
     cy.get('p').contains('Email: amelie.durand@example.com');
+  });
+
+  it('should go back when clicking the back button', () => {
+    cy.visit('/login');
+    cy.get('input[formControlName=email]').type(email);
+    cy.get('input[formControlName=password]').type(password);
+    cy.get('form').submit();
+    cy.wait('@loginRequest');
+    cy.contains('span.link', 'Account').click();
+    cy.url().should('include', '/me');
+    cy.get('button').contains(/back/i).click();
+    // Vérifie que l'utilisateur revient sur /sessions (ou la page précédente)
+    cy.url().should('include', '/sessions');
+  });
+
+  it('should delete the account and log out', () => {
+    cy.intercept('DELETE', '/api/user/5', { statusCode: 200 }).as('deleteUser');
+    cy.visit('/login');
+    cy.get('input[formControlName=email]').type(email);
+    cy.get('input[formControlName=password]').type(password);
+    cy.get('form').submit();
+    cy.wait('@loginRequest');
+    cy.contains('span.link', 'Account').click();
+    cy.url().should('include', '/me');
+    cy.get('button').contains(/delete/i).click();
+    cy.wait('@deleteUser');
+    cy.contains('Your account has been deleted !').should('be.visible');
+const baseUrl = Cypress.config().baseUrl?.replace(/\/$/, '') || '';
+cy.url().should('eq', baseUrl + '/');    // Vérifie qu'on ne peut plus accéder à /me
+    cy.visit('/me');
+    cy.url().should('include', '/login');
   });
 });
