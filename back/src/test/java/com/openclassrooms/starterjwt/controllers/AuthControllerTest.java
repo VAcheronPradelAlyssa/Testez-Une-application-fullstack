@@ -13,8 +13,6 @@ import org.springframework.http.MediaType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.MvcResult;
-
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -57,6 +55,20 @@ public class AuthControllerTest {
 
     }
 
+   @Test
+public void authenticateUser_UserNotFound() throws Exception {
+    String email = "notfound@studio.com";
+
+    LoginRequest loginRequest = new LoginRequest();
+    loginRequest.setEmail(email);
+    loginRequest.setPassword("Mypassword8$");
+
+    mockMvc.perform(post("/api/auth/login")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(loginRequest)))
+            .andExpect(status().isUnauthorized());
+}
+
     @Nested
     public class registerUserTest{
         @Test
@@ -93,6 +105,7 @@ public class AuthControllerTest {
                             .content(objectMapper.writeValueAsString(signUpRequest)))
                     .andExpect(status().isBadRequest());
         }
+        
         @Test
         void shouldBadRequestEmailAlreadyExists() throws Exception {
 
