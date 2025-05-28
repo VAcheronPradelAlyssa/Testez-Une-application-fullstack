@@ -4,19 +4,34 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.openclassrooms.starterjwt.payload.request.LoginRequest;
 import com.openclassrooms.starterjwt.payload.request.SignupRequest;
 import com.openclassrooms.starterjwt.payload.response.JwtResponse;
+import com.openclassrooms.starterjwt.repository.UserRepository;
+import com.openclassrooms.starterjwt.security.jwt.JwtUtils;
+import com.openclassrooms.starterjwt.security.services.UserDetailsImpl;
+
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import java.util.Optional;
+
+import org.springframework.security.core.Authentication;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
@@ -123,5 +138,33 @@ public void authenticateUser_UserNotFound() throws Exception {
                     .andExpect(status().isBadRequest());
         }
     }
+@Test
+void authenticateUser_userNotFound_setsIsAdminFalse() {
+    // Arrange
+    AuthenticationManager authenticationManager = mock(AuthenticationManager.class);
+    JwtUtils jwtUtils = mock(JwtUtils.class);
+    UserRepository userRepository = mock(UserRepository.class);
 
+    AuthController controller = new AuthController(authenticationManager, null, jwtUtils, userRepository);
+
+    LoginRequest loginRequest = new LoginRequest();
+    loginRequest.setEmail("notfound@studio.com");
+    loginRequest.setPassword("Mypassword8$");
+
+    Authentication authentication = mock(Authentication.class);
+    UserDetailsImpl userDetails = mock(UserDetailsImpl.class);
+    when(authentication.getPrincipal()).thenReturn(userDetails);
+    when(userDetails.getUsername()).thenReturn("notfound@studio.com");
+    when(authenticationManager.authenticate(any())).thenReturn(authentication);
+    when(jwtUtils.generateJwtToken(authentication)).thenReturn("jwt");
+    when(userRepository.findByEmail("notfound@studio.com")).thenReturn(Optional.empty());
+
+    // Act
+    ResponseEntity<?> response = controller.authenticateUser(loginRequest);
+
+    // Assert
+    JwtResponse jwtResponse = (JwtResponse) response.getBody();
+    assertNotNull(jwtResponse);
+    assertFalse(jwtResponse.getAdmin());
+}
 }
