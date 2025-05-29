@@ -77,4 +77,14 @@ describe('Create Session Page', () => {
 
     cy.wait('@createSessionBad').its('response.statusCode').should('eq', 400);
   });
+  it('redirige les non-admins vers /sessions', () => {
+  // Simule un utilisateur non admin
+  window.localStorage.setItem('sessionInformation', JSON.stringify({
+    id: 2,
+    admin: false
+  }));
+
+  cy.visit('/sessions/create');
+  cy.url().should('include', '/login');
+});
 });

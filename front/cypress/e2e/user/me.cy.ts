@@ -91,4 +91,52 @@ cy.url().should('eq', baseUrl + '/');    // Vérifie qu'on ne peut plus accéder
     cy.visit('/me');
     cy.url().should('include', '/login');
   });
+  it('affiche "You are admin" si l\'utilisateur est admin', () => {
+  // Mock login API
+  cy.intercept('POST', '/api/auth/login', {
+    statusCode: 200,
+    body: {
+      id: 42,
+      token: 'mocked-jwt-token',
+      username: 'admin@example.com'
+    }
+  }).as('loginRequest');
+
+  // Mock GET user API avec admin: true
+  cy.intercept('GET', '/api/user/42', {
+    statusCode: 200,
+    body: {
+      id: 42,
+      firstName: 'Admin',
+      lastName: 'User',
+      email: 'admin@example.com',
+      admin: true,
+      createdAt: '2024-03-10T10:00:00Z',
+      updatedAt: '2024-05-10T15:42:00Z'
+    }
+  }).as('getUserAdmin');
+
+  cy.intercept('GET', '/api/session', { body: [] }).as('getSessions');
+
+  // Login
+  cy.visit('/login');
+  cy.get('input[formControlName=email]').type('admin@example.com');
+  cy.get('input[formControlName=password]').type('motdepasse123');
+  cy.get('form').submit();
+  cy.wait('@loginRequest').then(() => {
+    window.localStorage.setItem('sessionInformation', JSON.stringify({
+      id: 42,
+      token: 'mocked-jwt-token',
+      username: 'admin@example.com'
+    }));
+  });
+
+  cy.url().should('include', '/sessions');
+  cy.contains('span.link', 'Account').click();
+  cy.url().should('include', '/me');
+  cy.wait('@getUserAdmin');
+
+  // Vérifie que le texte "You are admin" est affiché
+  cy.get('p.my2').contains('You are admin').should('be.visible');
+});
 });
