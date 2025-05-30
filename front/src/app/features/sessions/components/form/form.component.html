@@ -1,7 +1,7 @@
 <div class="create m3">
   <mat-card>
     <mat-card-title>
-      <div fxLayout="row" fxLayoutAlign="start center">
+<div class="flex-row start-center">
         <button mat-icon-button routerLink="/sessions">
           <mat-icon>arrow_back</mat-icon>
         </button>
@@ -10,12 +10,12 @@
       </div>
     </mat-card-title>
     <mat-card-content *ngIf="sessionForm">
-      <form class="mt2" fxLayout="column" [formGroup]="sessionForm" (ngSubmit)="submit()">
-        <mat-form-field appearance="outline" class="" fxFlex>
+      <form class="mt2" [formGroup]="sessionForm" (ngSubmit)="submit()">
+        <mat-form-field appearance="outline" class="flex">
           <mat-label>Name</mat-label>
           <input matInput formControlName="name">
         </mat-form-field>
-        <mat-form-field appearance="outline" fxFlex>
+        <mat-form-field appearance="outline" class="flex">
           <mat-label>Date</mat-label>
           <input matInput type="date" formControlName="date">
         </mat-form-field>
@@ -25,13 +25,13 @@
             <mat-option *ngFor="let teacher of teachers$ | async" [value]="teacher.id">
               {{teacher.firstName}} {{teacher.lastName}}
             </mat-option>
-          </mat-select>
+          </mat-select><a href="http://" target="_blank" rel="noopener noreferrer"></a>
         </mat-form-field>
-        <mat-form-field appearance="outline" fxFlex>
+        <mat-form-field appearance="outline" class="flex">
           <mat-label>Description</mat-label>
           <textarea matInput rows="8" formControlName="description"></textarea>
         </mat-form-field>
-        <div fxLayout="row" fxLayoutAlign="center center">
+        <div class="flex-row center-center">
           <button mat-raised-button color="primary" type="submit" [disabled]="sessionForm.invalid">
             Save
           </button>

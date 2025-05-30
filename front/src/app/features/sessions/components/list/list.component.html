@@ -1,21 +1,21 @@
 <div class="list">
   <mat-card>
-    <mat-card-header fxLayout="row" fxLayoutAlign="space-between center">
+    <mat-card-header class="flex-row space-between-center">
       <mat-card-title class="m0">Rentals available</mat-card-title>
       <button *ngIf="user!.admin" mat-raised-button color="primary" routerLink="create">
         <mat-icon>add</mat-icon>
         <span class="ml1">Create</span>
       </button>
     </mat-card-header>
-    <div class="items mt2" fxLayout="row wrap" fxLayout.lt-md="column">
-      <mat-card class="item" *ngFor="let session of (sessions$ | async)" fxFlex>
+  <div class="items mt2 flex-row flex-wrap flex-row-to-column">
+  <mat-card class="item flex" *ngFor="let session of (sessions$ | async)">
         <mat-card-header>
           <mat-card-title>{{ session.name }}</mat-card-title>
           <mat-card-subtitle>
             Session on {{ session.date | date: 'longDate'}}
           </mat-card-subtitle>
         </mat-card-header>
-        <div mat-card-image fxLayoutAlign="center center">
+        <div mat-card-image class="flex-row center-center">
           <img class="picture" src="assets/sessions.png" alt="Yoga session">
         </div>
         <mat-card-content>

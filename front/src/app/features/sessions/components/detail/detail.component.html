@@ -1,8 +1,8 @@
 <div class="m3">
   <mat-card *ngIf="session">
     <mat-card-title>
-      <div fxLayout="row" fxLayoutAlign="space-between center">
-        <div fxLayout="row" fxLayoutAlign="start center">
+     <div class="register flex-row center-center">
+        <div class="flex-row start-center">
           <button mat-icon-button (click)="back()">
             <mat-icon>arrow_back</mat-icon>
           </button>
@@ -30,25 +30,25 @@
       </div>
     </mat-card-title>
     <mat-card-subtitle *ngIf="teacher">
-      <div fxLayoutAlign="start center" class="ml3">
+      <div class="flex-row start-center ml3">
         <mat-icon>
           people
         </mat-icon>
         <span class="ml1">{{ teacher.firstName }} {{ teacher.lastName | uppercase }}</span>
       </div>
     </mat-card-subtitle>
-    <div mat-card-image fxLayoutAlign="center center">
+    <div mat-card-image class="flex-row center-center">
       <img class="picture" src="assets/sessions.png" alt="Yoga session">
     </div>
     <mat-card-content>
-      <div class="my2" fxLayout="row" fxLayoutAlign="space-between center">
-        <div fxLayoutAlign="start center">
+      <div class="my2 flex-row space-between-center">
+        <div class="flex-row start-center">
           <mat-icon>
             group
           </mat-icon>
           <span class="ml1">{{ session.users.length }} attendees</span>
         </div>
-        <div fxLayoutAlign="start center">
+        <div class="flex-row start-center">
           <mat-icon>
             calendar_month
           </mat-icon>
@@ -60,7 +60,7 @@
         {{ session.description }}
         <br>
       </div>
-      <div class="date" class="my2" fxLayout="row" fxLayoutAlign="space-between center">
+      <div class="date my2 flex-row space-between-center">
         <div class="created"><i>Create at: </i> {{ session.createdAt| date: 'longDate'}}</div>
         <div class="updated"><i>Last update: </i> {{ session.updatedAt| date: 'longDate'}}</div>
       </div>

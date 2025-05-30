@@ -10,7 +10,8 @@ import { SessionApiService } from '../../services/session-api.service';
 @Component({
   selector: 'app-form',
   templateUrl: './form.component.html',
-  styleUrls: ['./form.component.scss']
+  styleUrls: ['./form.component.scss'],
+  standalone: false
 })
 export class FormComponent implements OnInit {
 

@@ -8,7 +8,8 @@ import { UserService } from '../../services/user.service';
 @Component({
   selector: 'app-me',
   templateUrl: './me.component.html',
-  styleUrls: ['./me.component.scss']
+  styleUrls: ['./me.component.scss'],
+  standalone: false
 })
 export class MeComponent implements OnInit {
 
