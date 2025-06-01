@@ -1,72 +1,142 @@
-# Yoga
+# Yoga App – Front-end
 
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 14.1.0.
+Frontend de l’application de gestion de cours de yoga  
+**Angular 19 • Angular Material • Cypress • Jest**
 
-## Start the project
+---
 
-Git clone:
+## Sommaire
 
-> git clone https://github.com/OpenClassrooms-Student-Center/P5-Full-Stack-testing
+- [Présentation](#présentation)
+- [Architecture Front-end](#architecture-front-end)
+- [Prérequis](#prérequis)
+- [Installation](#installation)
+- [Configuration](#configuration)
+- [Lancement](#lancement)
+- [Tests](#tests)
+- [Structure des dossiers](#structure-des-dossiers)
+- [Fonctionnalités principales](#fonctionnalités-principales)
+- [Auteurs](#auteurs)
 
-Go inside folder:
+---
 
-> cd yoga
+## Présentation
 
-Install dependencies:
+Ce front-end fournit une interface moderne pour la gestion des cours, professeurs, utilisateurs, inscriptions et administration des comptes de yoga.  
+Il s’appuie sur Angular Material pour l’UI et interagit avec une API sécurisée via JWT.
 
-> npm install
+---
 
-Launch Front-end:
+## Architecture Front-end
 
-> npm run start;
+- **Framework** : Angular 19
+- **UI** : Angular Material
+- **Gestion d’état & services** : RxJS, HttpClient
+- **Tests unitaires** : Jest
+- **Tests end-to-end** : Cypress
 
+---
 
-## Ressources
+## Prérequis
 
-### Mockoon env 
+- **Node.js** : v20.x
+- **npm** : v10.x
+- **Angular CLI** : v19.x
 
-### Postman collection
+---
 
-For Postman import the collection
+## Installation
 
-> ressources/postman/yoga.postman_collection.json 
+1. **Cloner le dépôt**
 
-by following the documentation: 
+   ```bash
+   git clone <url-du-repo>
+   cd Testez-Une-application-fullstack/frontend
+   ```
 
-https://learning.postman.com/docs/getting-started/importing-and-exporting-data/#importing-data-into-postman
+2. **Installer les dépendances**
 
+   ```bash
+   npm install
+   ```
 
-### MySQL
+---
 
-SQL script for creating the schema is available `ressources/sql/script.sql`
+## Configuration
 
-By default the admin account is:
-- login: yoga@studio.com
-- password: test!1234
+Configurer l’URL de l’API dans le fichier :
 
+```text
+src/environments/environment.ts
+```
 
-### Test
+Exemple de configuration :
 
-#### E2E
+```typescript
+export const environment = {
+  production: false,
+  apiUrl: 'http://localhost:8080/api'
+};
+```
 
-Launching e2e test:
+---
 
-> npm run e2e
+## Lancement
 
-Generate coverage report (you should launch e2e test before):
+```bash
+ng serve
+```
+L’application sera accessible sur [http://localhost:4200](http://localhost:4200).
 
-> npm run e2e:coverage
+---
 
-Report is available here:
+## Tests
 
-> front/coverage/lcov-report/index.html
+- **Unitaires (Jest)** :
 
-#### Unitary test
+  ```bash
+  npm run test
+  ```
 
-Launching test:
+- **End-to-end (Cypress)** :
 
-> npm run test
+  ```bash
+  npm run cy:open
+  ```
+  ou
+  ```bash
+  npx cypress open
+  ```
 
-for following change:
+---
 
-> npm run test:watch
+## Structure des dossiers
+
+```text
+frontend/
+├── src/
+│   ├── app/
+│   │   ├── components/         # Composants Angular
+│   │   ├── services/           # Services (API, Auth, etc.)
+│   │   ├── pages/              # Pages principales
+│   │   ├── guards/             # Guards de navigation
+│   │   └── ...                 # Autres modules
+│   ├── assets/                 # Images, styles, etc.
+│   ├── environments/           # Fichiers d’environnement
+│   └── ...                     # Autres fichiers Angular
+```
+
+---
+
+## Fonctionnalités principales (front-end)
+
+- Authentification par JWT
+- Gestion des cours, utilisateurs, professeurs, inscriptions/désinscriptions
+- Interface responsive et moderne (Material)
+- Interaction sécurisée avec l’API backend
+
+---
+
+## Auteurs
+
+Projet pédagogique – OpenClassrooms
