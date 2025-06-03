@@ -70,6 +70,7 @@ describe('LoginComponent', () => {
     expect(component).toBeTruthy();
   });
 
+  //connexion réussie
   it('should call login and navigate on success', () => {
     // Arrange
     const loginData = { email: 'test@example.com', password: 'password123' };
@@ -87,7 +88,7 @@ describe('LoginComponent', () => {
     expect(routerMock.navigate).toHaveBeenCalledWith(['/sessions']);
     expect(component.onError).toBe(false);
   });
-
+  //connexion échoué 
   it('should set onError to true on login failure', () => {
     const loginData = { email: 'wrong@example.com', password: 'badpass' };
     component.form.setValue(loginData);
@@ -98,6 +99,7 @@ describe('LoginComponent', () => {
 
     expect(component.onError).toBe(true);
   });
+  // Test pour vérifier que le formulaire est valide après avoir été rempli
 it('should have valid form value after set', () => {
   const loginData = { email: 'user@example.com', password: 'securePass123' };
   component.form.setValue(loginData);
@@ -107,6 +109,7 @@ it('should have valid form value after set', () => {
   expect(component.form.controls.email.value).toBe('user@example.com');
   expect(component.form.controls.password.value).toBe('securePass123');
 });
+  // Test pour vérifier que le formulaire est invalide avec des champs manquants ou invalides
   it('should invalidate form with missing or invalid fields', () => {
     // Email required
     component.form.setValue({ email: '', password: '123456' });

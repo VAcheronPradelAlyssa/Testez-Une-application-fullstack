@@ -51,6 +51,7 @@ describe('RegisterComponent', () => {
     expect(component).toBeTruthy();
   });
 
+  
   it('should call register and navigate on success', () => {
     const spy = jest.spyOn(authService, 'register').mockReturnValue(of(void 0));
     const navSpy = jest.spyOn(routerMock, 'navigate');
@@ -84,19 +85,19 @@ describe('RegisterComponent', () => {
     expect(component.form.valid).toBe(false);
 
     // Email missing
-    component.form.setValue({ email: '', firstName: 'f', lastName: 'l', password: 'p' });
+    component.form.setValue({ email: '', firstName: 'far', lastName: 'lar', password: 'par' });
     expect(component.form.valid).toBe(false);
 
     // Password missing
-    component.form.setValue({ email: 'e@e.com', firstName: 'f', lastName: 'l', password: '' });
+    component.form.setValue({ email: 'e@e.com', firstName: 'far', lastName: 'lar', password: '' });
     expect(component.form.valid).toBe(false);
 
     // First name missing
-    component.form.setValue({ email: 'e@e.com', firstName: '', lastName: 'l', password: 'p' });
+    component.form.setValue({ email: 'e@e.com', firstName: '', lastName: 'lar', password: 'par' });
     expect(component.form.valid).toBe(false);
 
     // Last name missing
-    component.form.setValue({ email: 'e@e.com', firstName: 'f', lastName: '', password: 'p' });
+    component.form.setValue({ email: 'e@e.com', firstName: 'far', lastName: '', password: 'par' });
     expect(component.form.valid).toBe(false);
   });
 });
