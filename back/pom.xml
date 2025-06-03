@@ -107,9 +107,7 @@
     <version>0.8.5</version>
     <configuration>
         <excludes>
-            <exclude>com/openclassrooms/starterjwt/dto/*</exclude>
-            <exclude>com/openclassrooms/starterjwt/models/*</exclude>
-            
+            <exclude>com/openclassrooms/starterjwt/dto/*</exclude>            
         </excludes>
     </configuration>
     <executions>
