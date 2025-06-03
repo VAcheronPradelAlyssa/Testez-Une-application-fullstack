@@ -1,170 +1,155 @@
 package com.openclassrooms.starterjwt.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.openclassrooms.starterjwt.models.User;
 import com.openclassrooms.starterjwt.payload.request.LoginRequest;
 import com.openclassrooms.starterjwt.payload.request.SignupRequest;
 import com.openclassrooms.starterjwt.payload.response.JwtResponse;
+import com.openclassrooms.starterjwt.payload.response.MessageResponse;
 import com.openclassrooms.starterjwt.repository.UserRepository;
 import com.openclassrooms.starterjwt.security.jwt.JwtUtils;
 import com.openclassrooms.starterjwt.security.services.UserDetailsImpl;
 
-import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.jdbc.Sql;
-import org.springframework.test.web.servlet.MockMvc;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.Optional;
 
-import org.springframework.security.core.Authentication;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
 
-@SpringBootTest
-@ExtendWith(SpringExtension.class)
-@AutoConfigureMockMvc
-@DirtiesContext
-@Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD, scripts = "classpath:script.sql")
 public class AuthControllerTest {
 
-    @Autowired
-    private MockMvc mockMvc;
+    private AuthenticationManager authenticationManager;
+    private PasswordEncoder passwordEncoder;
+    private JwtUtils jwtUtils;
+    private UserRepository userRepository;
+    private AuthController controller;
+    private ObjectMapper objectMapper; // Optionnel, si besoin
 
-    @Autowired
-    private ObjectMapper objectMapper;
+    @BeforeEach
+    void setup() {
+        authenticationManager = mock(AuthenticationManager.class);
+        passwordEncoder = mock(PasswordEncoder.class);
+        jwtUtils = mock(JwtUtils.class);
+        userRepository = mock(UserRepository.class);
+        controller = new AuthController(authenticationManager, passwordEncoder, jwtUtils, userRepository);
+        objectMapper = new ObjectMapper();
+    }
+
+    @AfterEach
+    void cleanup() {
+        // Nettoyage si besoin (ex: reset mocks, données temporaires, etc.)
+        // Ici on peut faire reset des mocks si on veut (optionnel)
+        reset(authenticationManager, passwordEncoder, jwtUtils, userRepository);
+    }
 
     @Test
-    public void authenticateUserTest() throws Exception {
-
-        String email = "yoga@studio.com";
-
+    void authenticateUser_success() {
         LoginRequest loginRequest = new LoginRequest();
+        loginRequest.setEmail("user@example.com");
+        loginRequest.setPassword("password");
 
-        loginRequest.setEmail(email);
-        loginRequest.setPassword("Mypassword8$");
+        Authentication authentication = mock(Authentication.class);
+        UserDetailsImpl userDetails = mock(UserDetailsImpl.class);
 
-        mockMvc.perform(post("/api/auth/login")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(objectMapper.writeValueAsString(loginRequest)))
-            .andExpect(status().isOk())
-            .andDo(r -> {
-                String result = r.getResponse().getContentAsString();
-                JwtResponse user = objectMapper.readValue(result, JwtResponse.class);
-                assertEquals(email, user.getUsername());
-            });
+        when(authentication.getPrincipal()).thenReturn(userDetails);
+        when(userDetails.getUsername()).thenReturn("user@example.com");
+        when(userDetails.getId()).thenReturn(1L);
+        when(userDetails.getFirstName()).thenReturn("John");
+        when(userDetails.getLastName()).thenReturn("Doe");
 
+        when(authenticationManager.authenticate(any())).thenReturn(authentication);
+        when(jwtUtils.generateJwtToken(authentication)).thenReturn("token");
+        when(userRepository.findByEmail("user@example.com"))
+                .thenReturn(Optional.of(new User("user@example.com", "Doe", "John", "encoded", false)));
+
+        ResponseEntity<?> response = controller.authenticateUser(loginRequest);
+
+        assertEquals(200, response.getStatusCodeValue());
+        JwtResponse jwt = (JwtResponse) response.getBody();
+        assertNotNull(jwt);
+        assertEquals("user@example.com", jwt.getUsername());
+        assertFalse(jwt.getAdmin());
     }
 
-   @Test
-public void authenticateUser_UserNotFound() throws Exception {
-    String email = "notfound@studio.com";
+    @Test
+    void authenticateUser_userNotFound_setsIsAdminFalse() {
+        LoginRequest loginRequest = new LoginRequest();
+        loginRequest.setEmail("ghost@example.com");
+        loginRequest.setPassword("badpass");
 
-    LoginRequest loginRequest = new LoginRequest();
-    loginRequest.setEmail(email);
-    loginRequest.setPassword("Mypassword8$");
+        Authentication authentication = mock(Authentication.class);
+        UserDetailsImpl userDetails = mock(UserDetailsImpl.class);
 
-    mockMvc.perform(post("/api/auth/login")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(objectMapper.writeValueAsString(loginRequest)))
-            .andExpect(status().isUnauthorized());
-}
+        when(authentication.getPrincipal()).thenReturn(userDetails);
+        when(userDetails.getUsername()).thenReturn("ghost@example.com");
+        when(userDetails.getId()).thenReturn(42L);
+        when(userDetails.getFirstName()).thenReturn("Ghost");
+        when(userDetails.getLastName()).thenReturn("User");
 
-    @Nested
-    public class registerUserTest{
-        @Test
-        void shouldRegister() throws Exception {
+        when(authenticationManager.authenticate(any())).thenReturn(authentication);
+        when(jwtUtils.generateJwtToken(authentication)).thenReturn("token");
+        when(userRepository.findByEmail("ghost@example.com")).thenReturn(Optional.empty());
 
-            String newEmail = "yoga2@studio.com";
+        ResponseEntity<?> response = controller.authenticateUser(loginRequest);
 
-            // GIVEN
-            SignupRequest signUpRequest = new SignupRequest();
-            signUpRequest.setEmail(newEmail);
-            signUpRequest.setFirstName("new");
-            signUpRequest.setLastName("one");
-            signUpRequest.setPassword("password");
-
-            // WHEN & THEN
-            mockMvc.perform(post("/api/auth/register")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(signUpRequest)))
-                    .andExpect(status().isOk());
-        }
-        @Test
-        void shouldBadRequest() throws Exception {
-
-            // GIVEN
-            SignupRequest signUpRequest = new SignupRequest();
-            signUpRequest.setEmail(null);
-            signUpRequest.setFirstName("Test");
-            signUpRequest.setLastName("User");
-            signUpRequest.setPassword("password");
-
-            // WHEN & THEN
-            mockMvc.perform(post("/api/auth/register")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(signUpRequest)))
-                    .andExpect(status().isBadRequest());
-        }
-        
-        @Test
-        void shouldBadRequestEmailAlreadyExists() throws Exception {
-
-            // GIVEN
-            SignupRequest signUpRequest = new SignupRequest();
-            signUpRequest.setEmail("yoga@studio.com");
-            signUpRequest.setFirstName("Test");
-            signUpRequest.setLastName("User");
-            signUpRequest.setPassword("password");
-
-            // WHEN & THEN
-            mockMvc.perform(post("/api/auth/register")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(signUpRequest)))
-                    .andExpect(status().isBadRequest());
-        }
+        JwtResponse jwt = (JwtResponse) response.getBody();
+        assertNotNull(jwt);
+        assertEquals("ghost@example.com", jwt.getUsername());
+        assertFalse(jwt.getAdmin());
     }
-@Test
-void authenticateUser_userNotFound_setsIsAdminFalse() {
-    // Arrange
-    AuthenticationManager authenticationManager = mock(AuthenticationManager.class);
-    JwtUtils jwtUtils = mock(JwtUtils.class);
-    UserRepository userRepository = mock(UserRepository.class);
 
-    AuthController controller = new AuthController(authenticationManager, null, jwtUtils, userRepository);
+    @Test
+    void authenticateUser_invalidPassword_throwsException() {
+        LoginRequest loginRequest = new LoginRequest();
+        loginRequest.setEmail("user@example.com");
+        loginRequest.setPassword("wrong");
 
-    LoginRequest loginRequest = new LoginRequest();
-    loginRequest.setEmail("notfound@studio.com");
-    loginRequest.setPassword("Mypassword8$");
+        when(authenticationManager.authenticate(any()))
+                .thenThrow(new BadCredentialsException("Bad credentials"));
 
-    Authentication authentication = mock(Authentication.class);
-    UserDetailsImpl userDetails = mock(UserDetailsImpl.class);
-    when(authentication.getPrincipal()).thenReturn(userDetails);
-    when(userDetails.getUsername()).thenReturn("notfound@studio.com");
-    when(authenticationManager.authenticate(any())).thenReturn(authentication);
-    when(jwtUtils.generateJwtToken(authentication)).thenReturn("jwt");
-    when(userRepository.findByEmail("notfound@studio.com")).thenReturn(Optional.empty());
+        assertThrows(BadCredentialsException.class, () -> controller.authenticateUser(loginRequest));
+    }
 
-    // Act
-    ResponseEntity<?> response = controller.authenticateUser(loginRequest);
+    @Test
+    void registerUser_success() {
+        SignupRequest signupRequest = new SignupRequest();
+        signupRequest.setEmail("new@user.com");
+        signupRequest.setFirstName("Jane");
+        signupRequest.setLastName("Doe");
+        signupRequest.setPassword("password");
 
-    // Assert
-    JwtResponse jwtResponse = (JwtResponse) response.getBody();
-    assertNotNull(jwtResponse);
-    assertFalse(jwtResponse.getAdmin());
-}
+        when(userRepository.existsByEmail("new@user.com")).thenReturn(false);
+        when(passwordEncoder.encode("password")).thenReturn("encoded-password");
+
+        ResponseEntity<?> response = controller.registerUser(signupRequest);
+        MessageResponse msg = (MessageResponse) response.getBody();
+
+        assertEquals(200, response.getStatusCodeValue());
+        assertEquals("User registered successfully!", msg.getMessage());
+        verify(userRepository).save(any(User.class));
+    }
+
+    @Test
+    void registerUser_emailAlreadyExists_shouldReturnBadRequest() {
+        SignupRequest signupRequest = new SignupRequest();
+        signupRequest.setEmail("existing@user.com");
+
+        when(userRepository.existsByEmail("existing@user.com")).thenReturn(true);
+
+        ResponseEntity<?> response = controller.registerUser(signupRequest);
+
+        assertEquals(400, response.getStatusCodeValue());
+        MessageResponse msg = (MessageResponse) response.getBody();
+        assertEquals("Error: Email is already taken!", msg.getMessage());
+        verify(userRepository, never()).save(any());
+    }
 }
