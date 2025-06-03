@@ -1,6 +1,5 @@
 package com.openclassrooms.starterjwt.controllers;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.openclassrooms.starterjwt.dto.TeacherDto;
 import com.openclassrooms.starterjwt.mapper.TeacherMapper;
@@ -16,9 +15,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import java.util.Collections;
 import java.util.List;
 
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.Mockito.when;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -38,8 +35,10 @@ public class TeacherControllerTest {
         mockMvc = MockMvcBuilders.standaloneSetup(controller).build();
     }
 
+    // ----------- findById tests ------------
+
     @Test
-    void findById_shouldReturnTeacher() throws Exception {
+    void findById_shouldReturnTeacher_whenFound() throws Exception {
         Teacher teacher = new Teacher();
         teacher.setId(1L);
         teacher.setFirstName("Margot");
@@ -55,26 +54,37 @@ public class TeacherControllerTest {
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.firstName").value("Margot"));
+
+        verify(teacherService, times(1)).findById(1L);
+        verify(teacherMapper, times(1)).toDto(teacher);
     }
 
     @Test
-    void findById_shouldReturn404WhenNotFound() throws Exception {
+    void findById_shouldReturn404_whenNotFound() throws Exception {
         when(teacherService.findById(99L)).thenReturn(null);
 
         mockMvc.perform(get("/api/teacher/99")
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound());
+
+        verify(teacherService, times(1)).findById(99L);
+        verify(teacherMapper, never()).toDto(any(Teacher.class));
     }
 
     @Test
-    void findById_shouldReturnBadRequestWhenInvalidId() throws Exception {
-        mockMvc.perform(get("/api/teacher/notANumber")
+    void findById_shouldReturn400_whenInvalidId() throws Exception {
+        mockMvc.perform(get("/api/teacher/invalidId")
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest());
+
+        verify(teacherService, never()).findById(anyLong());
+        verify(teacherMapper, never()).toDto(any(Teacher.class));
     }
 
+    // ----------- findAll tests ------------
+
     @Test
-    void findAll_shouldReturnListOfTeachers() throws Exception {
+    void findAll_shouldReturnListOfTeachers_whenNotEmpty() throws Exception {
         Teacher teacher = new Teacher();
         teacher.setId(1L);
         teacher.setFirstName("Margot");
@@ -89,12 +99,15 @@ public class TeacherControllerTest {
         mockMvc.perform(get("/api/teacher")
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.size()").value(1))
+                .andExpect(jsonPath("$.length()").value(1))
                 .andExpect(jsonPath("$[0].firstName").value("Margot"));
+
+        verify(teacherService, times(1)).findAll();
+        verify(teacherMapper, times(1)).toDto(anyList());
     }
 
     @Test
-    void findAll_shouldReturnEmptyListWhenNoneExists() throws Exception {
+    void findAll_shouldReturnEmptyList_whenNoTeachers() throws Exception {
         when(teacherService.findAll()).thenReturn(Collections.emptyList());
         when(teacherMapper.toDto(Collections.emptyList())).thenReturn(Collections.emptyList());
 
@@ -102,5 +115,8 @@ public class TeacherControllerTest {
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(content().json("[]"));
+
+        verify(teacherService, times(1)).findAll();
+        verify(teacherMapper, times(1)).toDto(Collections.emptyList());
     }
 }
