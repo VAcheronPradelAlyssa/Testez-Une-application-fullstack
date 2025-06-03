@@ -18,14 +18,18 @@ describe('User Registration', () => {
     // Attendre la requête réseau et vérifier la redirection
     cy.wait('@registerUser');
     cy.url().should('include', '/login');
+
+    // Utilise la commande personnalisée pour simuler le login après inscription
+    cy.login();
   });
-it('should display the registration form', () => {
-  cy.visit('/register');
-  cy.get('input[formControlName=firstName]').should('exist');
-  cy.get('input[formControlName=lastName]').should('exist');
-  cy.get('input[formControlName=email]').should('exist');
-  cy.get('input[formControlName=password]').should('exist');
-});
+
+  it('should display the registration form', () => {
+    cy.get('input[formControlName=firstName]').should('exist');
+    cy.get('input[formControlName=lastName]').should('exist');
+    cy.get('input[formControlName=email]').should('exist');
+    cy.get('input[formControlName=password]').should('exist');
+  });
+
   it('should handle existing email error', () => {
     // Stub d'une erreur pour email existant
     cy.intercept('POST', '/api/auth/register', { statusCode: 400 }).as('registerExisting');

@@ -2,6 +2,8 @@ package com.openclassrooms.starterjwt.services;
 
 import com.openclassrooms.starterjwt.models.User;
 import com.openclassrooms.starterjwt.repository.UserRepository;
+
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
@@ -33,7 +35,10 @@ public class UserServiceIntegrationTest {
             return new UserService(userRepository);
         }
     }
-
+ @AfterEach
+    void cleanUpDatabase() {
+        userRepository.deleteAll(); // 🔁 Nettoyage après chaque test
+    }
     @Test
     void testFindById_shouldReturnUser() {
         // Arrange

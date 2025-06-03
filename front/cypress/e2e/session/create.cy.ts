@@ -3,15 +3,8 @@ describe('Create Session Page', () => {
 
   beforeEach(() => {
     cy.intercept('GET', '/api/teacher*', { body: teachers }).as('getTeachers');
-    cy.intercept('POST', '/api/auth/login', {
-      body: { id: 1, username: 'user', firstName: 'X', lastName: 'Y', admin: true }
-    }).as('login');
     cy.intercept('GET', '/api/session', { body: [] }).as('getSessions');
-
-    cy.visit('/login');
-    cy.get('input[formControlName=email]').type('yoga@studio.com');
-    cy.get('input[formControlName=password]').type('test!1234');
-    cy.get('form').submit();
+    cy.login();
     cy.url().should('include', '/sessions');
     cy.contains('Create').click();
     cy.wait('@getTeachers');
@@ -77,14 +70,15 @@ describe('Create Session Page', () => {
 
     cy.wait('@createSessionBad').its('response.statusCode').should('eq', 400);
   });
-  it('redirige les non-admins vers /sessions', () => {
-  // Simule un utilisateur non admin
-  window.localStorage.setItem('sessionInformation', JSON.stringify({
-    id: 2,
-    admin: false
-  }));
 
-  cy.visit('/sessions/create');
-  cy.url().should('include', '/login');
-});
+  it('redirige les non-admins vers /sessions', () => {
+    // Simule un utilisateur non admin
+    window.localStorage.setItem('sessionInformation', JSON.stringify({
+      id: 2,
+      admin: false
+    }));
+
+    cy.visit('/sessions/create');
+    cy.url().should('include', '/login');
+  });
 });
