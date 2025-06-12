@@ -1,270 +1,227 @@
 package com.openclassrooms.starterjwt.controllers;
 
-
-import java.time.LocalDateTime;
-import java.util.*;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.openclassrooms.starterjwt.dto.SessionDto;
-import org.junit.jupiter.api.Nested;
+import com.openclassrooms.starterjwt.mapper.SessionMapper;
+import com.openclassrooms.starterjwt.models.Session;
+import com.openclassrooms.starterjwt.services.SessionService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.client.TestRestTemplate;
-import org.springframework.http.MediaType;
+import org.mockito.*;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.ResponseEntity;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import java.util.*;
 
-import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
-import org.springframework.test.context.jdbc.Sql;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@ExtendWith(SpringExtension.class)
-@DirtiesContext
-@AutoConfigureMockMvc
-@Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD, scripts = "classpath:script.sql")
+@ExtendWith(MockitoExtension.class)
 class SessionControllerTest {
 
-    @Autowired
-    private MockMvc mockMvc;
+    @Mock
+    private SessionService sessionService;
 
-    @Autowired
-    private ObjectMapper objectMapper;
+    @Mock
+    private SessionMapper sessionMapper;
 
-    @Autowired
-    private TestRestTemplate restTemplate;
+    @InjectMocks
+    private SessionController sessionController;
 
-    @Nested
-    public class FindById {
-
-        @Test
-        @WithMockUser
-        void shouldFind() throws Exception {
-
-            mockMvc.perform(get("/api/session/1")
-                            .contentType(MediaType.APPLICATION_JSON))
-                    .andExpect(status().isOk())
-                    .andDo(r -> {
-                        String result = r.getResponse().getContentAsString();
-                        SessionDto session = objectMapper.readValue(result, SessionDto.class);
-                        assertNotNull(session);
-                        assertEquals(1, session.getId());
-                    });
-
-        }
-
-        @Test
-        @WithMockUser
-        void shouldNotFound() throws Exception {
-            mockMvc.perform(get("/api/session/12")
-                            .contentType(MediaType.APPLICATION_JSON))
-                    .andExpect(status().isNotFound());
-        }
-
-        @Test
-        @WithMockUser
-        void shouldBadRequest() throws Exception {
-            mockMvc.perform(get("/api/session/not_a_number")
-                            .contentType(MediaType.APPLICATION_JSON))
-                    .andExpect(status().isBadRequest());
-        }
-
+    @BeforeEach
+    void setup() {
     }
 
+    // ----- findById -----
 
     @Test
-    @WithMockUser
-    void findAllTest() throws Exception {
-        mockMvc.perform(get("/api/session")
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andDo(r -> {
-                    String result = r.getResponse().getContentAsString();
-                    List<SessionDto> sessions = List.of(objectMapper.readValue(result, SessionDto[].class));
-                    assertNotNull(sessions);
-                    assertEquals(2, sessions.size());
-                });
+    void findById_found() {
+        Session session = new Session();
+        session.setId(1L);
+        SessionDto dto = new SessionDto();
+        dto.setId(1L);
+
+        when(sessionService.getById(1L)).thenReturn(session);
+        when(sessionMapper.toDto(session)).thenReturn(dto);
+
+        ResponseEntity<?> response = sessionController.findById("1");
+
+        assertEquals(200, response.getStatusCodeValue());
+        assertEquals(dto, response.getBody());
     }
 
     @Test
-    @WithMockUser
-    void createTest() throws Exception {
+    void findById_notFound() {
+        when(sessionService.getById(99L)).thenReturn(null);
 
-        SessionDto session = new SessionDto();
-        session.setName("New session");
-        session.setDescription("A small description");
-        session.setTeacher_id(1L);
-        session.setDate(new Date());
+        ResponseEntity<?> response = sessionController.findById("99");
 
-        mockMvc.perform(post("/api/session")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(session)))
-                .andExpect(status().isOk())
-                .andDo(r -> {
-                    String result = r.getResponse().getContentAsString();
-                    SessionDto outputSession = objectMapper.readValue(result, SessionDto.class);
-                    assertEquals(session.getName(), outputSession.getName());
-                });
-
+        assertEquals(404, response.getStatusCodeValue());
+        assertNull(response.getBody());
     }
 
-    @Nested
-    public class updateTest {
+    @Test
+    void findById_badRequest() {
+        ResponseEntity<?> response = sessionController.findById("abc");
 
-        @Test
-        @WithMockUser
-        void shouldUpdate() throws Exception {
-
-            SessionDto session = new SessionDto();
-            session.setId(2L);
-            session.setName("New name");
-            session.setDescription("New description");
-            session.setTeacher_id(2L);
-            session.setDate(new Date());
-            session.setUpdatedAt(LocalDateTime.now());
-            session.setCreatedAt(LocalDateTime.now());
-
-            mockMvc.perform(put("/api/session/2")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(session)))
-                    .andExpect(status().isOk())
-                    .andDo(r -> {
-                        String result = r.getResponse().getContentAsString();
-                        SessionDto outputSession = objectMapper.readValue(result, SessionDto.class);
-                        assertEquals(session.getName(), outputSession.getName());
-                    });
-
-        }
-
-        @Test
-        @WithMockUser
-        void shouldBadRequest() throws Exception {
-
-            // WHEN & THEN
-            mockMvc.perform(put("/api/session/not_a_number")
-                            .contentType(MediaType.APPLICATION_JSON))
-                    .andExpect(status().isBadRequest());
-
-        }
+        assertEquals(400, response.getStatusCodeValue());
+        assertNull(response.getBody());
     }
 
-    @Nested
-    public class saveTest {
+    // ----- findAll -----
 
-        @Test
-        @WithMockUser
-        void shouldSave() throws Exception {
-            mockMvc.perform(delete("/api/session/1")
-                            .contentType(MediaType.APPLICATION_JSON))
-                    .andExpect(status().isOk());
-        }
+    @Test
+    void findAll_shouldReturnList() {
+        Session s1 = new Session();
+        s1.setId(1L);
+        Session s2 = new Session();
+        s2.setId(2L);
 
-        @Test
-        @WithMockUser
-        void shouldNotFound() throws Exception {
-            mockMvc.perform(delete("/api/session/99")
-                            .contentType(MediaType.APPLICATION_JSON))
-                    .andExpect(status().isNotFound());
-        }
+        List<Session> sessions = Arrays.asList(s1, s2);
 
-        @Test
-        @WithMockUser
-        void shouldBadRequest() throws Exception {
-            mockMvc.perform(delete("/api/session/not_a_number")
-                            .contentType(MediaType.APPLICATION_JSON))
-                    .andExpect(status().isBadRequest());
-        }
+        SessionDto dto1 = new SessionDto();
+        dto1.setId(1L);
+        SessionDto dto2 = new SessionDto();
+        dto2.setId(2L);
+
+        when(sessionService.findAll()).thenReturn(sessions);
+        when(sessionMapper.toDto(sessions)).thenReturn(Arrays.asList(dto1, dto2));
+
+        ResponseEntity<?> response = sessionController.findAll();
+
+        assertEquals(200, response.getStatusCodeValue());
+        List<?> body = (List<?>) response.getBody();
+        assertNotNull(body);
+        assertEquals(2, body.size());
     }
 
-    @Nested
-    public class participateTest {
+    // ----- create -----
 
-        @Test
-        @WithMockUser
-        void shouldParticipate() throws Exception {
+    @Test
+    void create_shouldReturnCreatedSession() {
+        SessionDto inputDto = new SessionDto();
+        inputDto.setName("Session Test");
 
-            Long sessionId = 2L;
-            Long userId = 1L;
+        Session entity = new Session();
+        entity.setName("Session Test");
 
-            mockMvc.perform(post("/api/session/" + sessionId + "/participate/" + userId)
-                            .contentType(MediaType.APPLICATION_JSON))
-                    .andExpect(status().isOk());
+        Session saved = new Session();
+        saved.setId(10L);
+        saved.setName("Session Test");
 
-            mockMvc.perform(get("/api/session/" + sessionId)
-                            .contentType(MediaType.APPLICATION_JSON))
-                    .andExpect(status().isOk())
-                    .andDo(r -> {
-                        String result = r.getResponse().getContentAsString();
-                        SessionDto outputSession = objectMapper.readValue(result, SessionDto.class);
-                        assertEquals(userId, outputSession.getUsers().get(0));
-                    });
+        SessionDto outputDto = new SessionDto();
+        outputDto.setId(10L);
+        outputDto.setName("Session Test");
 
-        }
+        when(sessionMapper.toEntity(inputDto)).thenReturn(entity);
+        when(sessionService.create(entity)).thenReturn(saved);
+        when(sessionMapper.toDto(saved)).thenReturn(outputDto);
 
-        @Test
-        @WithMockUser
-        void shouldBadRequest() throws Exception {
+        ResponseEntity<?> response = sessionController.create(inputDto);
 
-            mockMvc.perform(post("/api/session/" + "string_instead_long" + "/participate/" + "string_instead_long")
-                .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest());
-
-            mockMvc.perform(get("/api/session/" + "string_instead_long")
-                .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest());
-
-        }
+        assertEquals(200, response.getStatusCodeValue());
+        assertEquals(outputDto, response.getBody());
     }
 
-    @Nested
-    public class noLongerParticipateTest {
+    // ----- update -----
 
-        @Test
-        @WithMockUser
-        void shouldNotParticipate() throws Exception {
+    @Test
+    void update_shouldReturnUpdatedSession() {
+        SessionDto inputDto = new SessionDto();
+        inputDto.setName("Updated Name");
 
+        Session entity = new Session();
+        entity.setName("Updated Name");
 
-            Long sessionId = 1L;
-            Long userId = 1L;
+        Session updated = new Session();
+        updated.setId(2L);
+        updated.setName("Updated Name");
 
-           mockMvc.perform(delete("/api/session/" + sessionId + "/participate/" + userId)
-                .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk());
+        SessionDto outputDto = new SessionDto();
+        outputDto.setId(2L);
+        outputDto.setName("Updated Name");
 
-            mockMvc.perform(get("/api/session/" + sessionId)
-                .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andDo(r -> {
-                    String result = r.getResponse().getContentAsString();
-                    SessionDto outputSession = objectMapper.readValue(result, SessionDto.class);
-                    assertEquals(0, outputSession.getUsers().size());
-                });
+        when(sessionMapper.toEntity(inputDto)).thenReturn(entity);
+        when(sessionService.update(2L, entity)).thenReturn(updated);
+        when(sessionMapper.toDto(updated)).thenReturn(outputDto);
 
-        }
+        ResponseEntity<?> response = sessionController.update("2", inputDto);
 
-        @Test
-        @WithMockUser
-        void shouldBadRequest() throws Exception {
-
-            mockMvc.perform(delete("/api/session/" + "string_instead_long" + "/participate/" + "string_instead_long")
-                .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest());
-
-            mockMvc.perform(get("/api/session/" + "string_instead_long")
-                .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest());
-
-        }
+        assertEquals(200, response.getStatusCodeValue());
+        assertEquals(outputDto, response.getBody());
     }
 
+    @Test
+    void update_badRequest_invalidId() {
+        ResponseEntity<?> response = sessionController.update("abc", new SessionDto());
 
+        assertEquals(400, response.getStatusCodeValue());
+    }
 
+    // ----- delete -----
+
+    @Test
+    void delete_shouldReturnOkIfDeleted() {
+        Session session = new Session();
+        session.setId(1L);
+
+        when(sessionService.getById(1L)).thenReturn(session);
+
+        ResponseEntity<?> response = sessionController.save("1");
+
+        assertEquals(200, response.getStatusCodeValue());
+        verify(sessionService).delete(1L);
+    }
+
+    @Test
+    void delete_notFound() {
+        when(sessionService.getById(99L)).thenReturn(null);
+
+        ResponseEntity<?> response = sessionController.save("99");
+
+        assertEquals(404, response.getStatusCodeValue());
+    }
+
+    @Test
+    void delete_badRequest_invalidId() {
+        ResponseEntity<?> response = sessionController.save("abc");
+
+        assertEquals(400, response.getStatusCodeValue());
+    }
+
+    // ----- participate -----
+
+    @Test
+    void participate_shouldReturnOk() {
+        doNothing().when(sessionService).participate(1L, 2L);
+
+        ResponseEntity<?> response = sessionController.participate("1", "2");
+
+        assertEquals(200, response.getStatusCodeValue());
+    }
+
+    @Test
+    void participate_badRequest_invalidIds() {
+        ResponseEntity<?> response = sessionController.participate("abc", "xyz");
+
+        assertEquals(400, response.getStatusCodeValue());
+    }
+
+    // ----- noLongerParticipate -----
+
+    @Test
+    void noLongerParticipate_shouldReturnOk() {
+        doNothing().when(sessionService).noLongerParticipate(1L, 2L);
+
+        ResponseEntity<?> response = sessionController.noLongerParticipate("1", "2");
+
+        assertEquals(200, response.getStatusCodeValue());
+    }
+
+    @Test
+    void noLongerParticipate_badRequest_invalidIds() {
+        ResponseEntity<?> response = sessionController.noLongerParticipate("abc", "xyz");
+
+        assertEquals(400, response.getStatusCodeValue());
+    }
 }

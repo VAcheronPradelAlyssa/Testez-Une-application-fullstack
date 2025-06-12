@@ -1,91 +1,122 @@
 package com.openclassrooms.starterjwt.controllers;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.openclassrooms.starterjwt.dto.TeacherDto;
-import org.junit.jupiter.api.Nested;
+import com.openclassrooms.starterjwt.mapper.TeacherMapper;
+import com.openclassrooms.starterjwt.models.Teacher;
+import com.openclassrooms.starterjwt.services.TeacherService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.mockito.Mockito;
 import org.springframework.http.MediaType;
-import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.jdbc.Sql;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
+import java.util.Collections;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@ExtendWith(SpringExtension.class)
-@DirtiesContext
-@AutoConfigureMockMvc
-@Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD, scripts = "classpath:script.sql")
 public class TeacherControllerTest {
 
-    @Autowired
     private MockMvc mockMvc;
-
-    @Autowired
+    private TeacherService teacherService;
+    private TeacherMapper teacherMapper;
     private ObjectMapper objectMapper;
 
-    @Nested
-    public class FindById {
-
-        @Test
-        @WithMockUser
-        void shouldHaveId() throws Exception {
-            mockMvc.perform(get("/api/teacher/1")
-                            .accept(MediaType.APPLICATION_JSON))
-                    .andExpect(status().isOk())
-                    .andDo(r -> {
-                        String result = r.getResponse().getContentAsString();
-                        TeacherDto teacher = objectMapper.readValue(result, TeacherDto.class);
-                        assertNotNull(teacher);
-                        assertEquals("Margot", teacher.getFirstName());
-                    });
-        }
-
-        @Test
-        @WithMockUser
-        void shouldNotFound() throws Exception {
-
-            // WHEN & THEN
-            mockMvc.perform(get("/api/teacher/99")
-                            .contentType(MediaType.APPLICATION_JSON))
-                    .andExpect(status().isNotFound());
-
-        }
-        @Test
-        @WithMockUser
-        void shouldBadRequest() throws Exception {
-
-            // WHEN & THEN
-            mockMvc.perform(get("/api/teacher/not_a_number")
-                            .contentType(MediaType.APPLICATION_JSON))
-                    .andExpect(status().isBadRequest());
-
-        }
-
+    @BeforeEach
+    void setup() {
+        teacherService = Mockito.mock(TeacherService.class);
+        teacherMapper = Mockito.mock(TeacherMapper.class);
+        objectMapper = new ObjectMapper();
+        TeacherController controller = new TeacherController(teacherService, teacherMapper);
+        mockMvc = MockMvcBuilders.standaloneSetup(controller).build();
     }
+
+    // ----------- findById tests ------------
+
     @Test
-    @WithMockUser
-    void findAllTest() throws Exception {
+    void findById_shouldReturnTeacher_whenFound() throws Exception {
+        Teacher teacher = new Teacher();
+        teacher.setId(1L);
+        teacher.setFirstName("Margot");
+
+        TeacherDto dto = new TeacherDto();
+        dto.setId(1L);
+        dto.setFirstName("Margot");
+
+        when(teacherService.findById(1L)).thenReturn(teacher);
+        when(teacherMapper.toDto(teacher)).thenReturn(dto);
+
+        mockMvc.perform(get("/api/teacher/1")
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.firstName").value("Margot"));
+
+        verify(teacherService, times(1)).findById(1L);
+        verify(teacherMapper, times(1)).toDto(teacher);
+    }
+
+    @Test
+    void findById_shouldReturn404_whenNotFound() throws Exception {
+        when(teacherService.findById(99L)).thenReturn(null);
+
+        mockMvc.perform(get("/api/teacher/99")
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound());
+
+        verify(teacherService, times(1)).findById(99L);
+        verify(teacherMapper, never()).toDto(any(Teacher.class));
+    }
+
+    @Test
+    void findById_shouldReturn400_whenInvalidId() throws Exception {
+        mockMvc.perform(get("/api/teacher/invalidId")
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest());
+
+        verify(teacherService, never()).findById(anyLong());
+        verify(teacherMapper, never()).toDto(any(Teacher.class));
+    }
+
+    // ----------- findAll tests ------------
+
+    @Test
+    void findAll_shouldReturnListOfTeachers_whenNotEmpty() throws Exception {
+        Teacher teacher = new Teacher();
+        teacher.setId(1L);
+        teacher.setFirstName("Margot");
+
+        TeacherDto dto = new TeacherDto();
+        dto.setId(1L);
+        dto.setFirstName("Margot");
+
+        when(teacherService.findAll()).thenReturn(List.of(teacher));
+        when(teacherMapper.toDto(List.of(teacher))).thenReturn(List.of(dto));
+
         mockMvc.perform(get("/api/teacher")
-            .contentType(MediaType.APPLICATION_JSON))
-            .andExpect(status().isOk())
-            .andDo(r -> {
-                String result = r.getResponse().getContentAsString();
-                List<TeacherDto> teachers = objectMapper.readValue(result, new TypeReference<List<TeacherDto>>() {});
-                assertNotNull(teachers);
-                assertEquals(2, teachers.size());
-            });
-        }
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].firstName").value("Margot"));
+
+        verify(teacherService, times(1)).findAll();
+        verify(teacherMapper, times(1)).toDto(anyList());
+    }
+
+    @Test
+    void findAll_shouldReturnEmptyList_whenNoTeachers() throws Exception {
+        when(teacherService.findAll()).thenReturn(Collections.emptyList());
+        when(teacherMapper.toDto(Collections.emptyList())).thenReturn(Collections.emptyList());
+
+        mockMvc.perform(get("/api/teacher")
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(content().json("[]"));
+
+        verify(teacherService, times(1)).findAll();
+        verify(teacherMapper, times(1)).toDto(Collections.emptyList());
+    }
 }

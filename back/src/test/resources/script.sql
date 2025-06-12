@@ -51,7 +51,6 @@ VALUES ('Yoga','First session','2023-04-05 10:13:16',1,'2023-04-04 10:13:16','20
 
 INSERT INTO USERS (first_name, last_name, admin, email, password)
 VALUES ('Admin', 'Admin', true, 'yoga@studio.com', '$2a$10$iubE9N0INEpjueHwqfKJq.d/Dr2QpWc3l91Z.v7nH1uBMcDdH4X4.'),
-       ('lasalle', 'degym', true, 'gym@studio.com', '$2a$10$WWUaHpk6yi9PKDmAv/BekejHy14u.ahqw8HjHmlm7NgKy9xOXs9p.');
 
 
 INSERT INTO PARTICIPATE (user_id,session_id) VALUES (1,1);

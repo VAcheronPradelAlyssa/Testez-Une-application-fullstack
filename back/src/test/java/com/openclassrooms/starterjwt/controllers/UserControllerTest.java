@@ -6,9 +6,10 @@ import com.openclassrooms.starterjwt.models.User;
 import com.openclassrooms.starterjwt.services.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -19,6 +20,7 @@ import java.util.Collections;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
+@ExtendWith(MockitoExtension.class)
 class UserControllerTest {
 
     @Mock
@@ -32,8 +34,7 @@ class UserControllerTest {
 
     @BeforeEach
     void setUp() {
-        MockitoAnnotations.openMocks(this);
-        // Nettoie le contexte de sécurité avant chaque test
+        // Nettoyage du contexte Security avant chaque test
         SecurityContextHolder.clearContext();
     }
 
@@ -73,14 +74,14 @@ class UserControllerTest {
         assertEquals(400, response.getStatusCodeValue());
     }
 
-   @Test
+    @Test
     void testDelete_Success() {
         User user = new User();
         user.setId(1L);
         user.setEmail("test@example.com");
 
-        // Utilise un vrai UserDetails comme principal
-        UserDetails userDetails = new org.springframework.security.core.userdetails.User("test@example.com", "password", Collections.emptyList());
+        UserDetails userDetails = new org.springframework.security.core.userdetails.User(
+                "test@example.com", "password", Collections.emptyList());
         UsernamePasswordAuthenticationToken auth =
                 new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
         SecurityContextHolder.getContext().setAuthentication(auth);
@@ -95,7 +96,8 @@ class UserControllerTest {
 
     @Test
     void testDelete_UserNotFound() {
-        UserDetails userDetails = new org.springframework.security.core.userdetails.User("test@example.com", "password", Collections.emptyList());
+        UserDetails userDetails = new org.springframework.security.core.userdetails.User(
+                "test@example.com", "password", Collections.emptyList());
         UsernamePasswordAuthenticationToken auth =
                 new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
         SecurityContextHolder.getContext().setAuthentication(auth);
@@ -113,7 +115,8 @@ class UserControllerTest {
         user.setId(1L);
         user.setEmail("other@example.com");
 
-        UserDetails userDetails = new org.springframework.security.core.userdetails.User("test@example.com", "password", Collections.emptyList());
+        UserDetails userDetails = new org.springframework.security.core.userdetails.User(
+                "test@example.com", "password", Collections.emptyList());
         UsernamePasswordAuthenticationToken auth =
                 new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
         SecurityContextHolder.getContext().setAuthentication(auth);
@@ -127,7 +130,8 @@ class UserControllerTest {
 
     @Test
     void testDelete_InvalidId() {
-        UserDetails userDetails = new org.springframework.security.core.userdetails.User("test@example.com", "password", Collections.emptyList());
+        UserDetails userDetails = new org.springframework.security.core.userdetails.User(
+                "test@example.com", "password", Collections.emptyList());
         UsernamePasswordAuthenticationToken auth =
                 new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
         SecurityContextHolder.getContext().setAuthentication(auth);

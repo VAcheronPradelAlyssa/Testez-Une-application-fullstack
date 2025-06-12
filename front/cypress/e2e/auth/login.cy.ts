@@ -70,4 +70,20 @@ describe('Login spec', () => {
   // Le champ password doit redevenir de type "password"
   cy.get('input[formControlName=password]').should('have.attr', 'type', 'password');
 });
+it('Login fails with wrong email', () => {
+  cy.visit('/login');
+
+  cy.intercept('POST', '/api/auth/login', {
+    statusCode: 401,
+    body: { message: 'An error occurred' }
+  }).as('loginFailEmail');
+
+  cy.get('input[formControlName=email]').type("wrong@domain.com");
+  cy.get('input[formControlName=password]').type("test!1234");
+  cy.get('form').submit();
+
+  cy.wait('@loginFailEmail');
+  cy.url().should('include', '/login');
+  cy.contains('An error occurred').should('be.visible');
+});
 });
