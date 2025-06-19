@@ -1,134 +1,135 @@
-describe('User session spec', () => {
-    it('Permet de Participate à une session quand non inscrit puis de se désinscrire', () => {
-        // Mock login
-        cy.intercept('POST', '/api/auth/login', {
-            statusCode: 200,
-            body: {
-                id: 1,
-                username: 'userName',
-                firstName: 'firstName',
-                lastName: 'lastName',
-                admin: false
-            }
-        }).as('login');
-        
-        // Mock sessions
-        cy.intercept('GET', '/api/session', {
-            statusCode: 200,
-            body: [{
-                id: 1,
-                name: "Test",
-                date: new Date(),
-                teacher_id: 1,
-                description: "Test description",
-                users: [],
-                createdAt: new Date(),
-                updatedAt: new Date()
-            }]
-        }).as('sessions');
+describe('Detail Session - affichage infos et boutons selon le rôle', () => {
+  const teachers = [
+    {
+      id: 1,
+      lastName: "Doe",
+      firstName: "John",
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    },
+    {
+      id: 2,
+      lastName: "Dupont",
+      firstName: "Louis",
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    }
+  ];
 
-        // Mock session detail (non inscrit)
-        cy.intercept('GET', '/api/session/1', {
-            statusCode: 200,
-            body: {
-                id: 1,
-                name: "Test",
-                date: new Date(),
-                teacher_id: 1,
-                description: "Test description",
-                users: [],
-                createdAt: new Date(),
-                updatedAt: new Date()
-            }
-        }).as('sessionDetail');
+  const session = {
+    id: 1,
+    name: "Test",
+    date: new Date(),
+    teacher_id: 1,
+    description: "A small description",
+    users: [],
+    createdAt: new Date(),
+    updatedAt: new Date()
+  };
 
-        // Mock teacher
-        cy.intercept('GET', '/api/teacher/1', {
-            statusCode: 200,
-            body: {
-                id: 1,
-                lastName: "Doe",
-                firstName: "John",
-                createdAt: new Date(),
-                updatedAt: new Date()
-            }
-        }).as('getTeacher1');
+  function interceptCommon() {
+    cy.intercept('GET', '/api/teacher', { body: teachers }).as('getTeachers');
+    cy.intercept('GET', '/api/session', { body: [session] }).as('getSessions');
+    cy.intercept('GET', '/api/session/1', { body: session }).as('getSession');
+  }
 
-        // Mock participate
-        cy.intercept('POST', '/api/session/1/participate/1', {
-            statusCode: 200
-        }).as('participate');
+  it('affiche les détails et le bouton Participate pour un non-admin', () => {
+    cy.intercept('POST', '/api/auth/login', {
+      body: { id: 2, username: 'nonAdminUser', admin: false }
+    }).as('login');
+    interceptCommon();
 
-        // Mock unParticipate
-        cy.intercept('DELETE', '/api/session/1/participate/1', {
-            statusCode: 200
-        }).as('unParticipate');
+    cy.login('nonadmin@studio.com', 'test!1234');
+    cy.wait('@getSessions');
 
-        // Connexion
-        cy.visit('/login');
-        cy.get('input[formControlName=email]').type("yoga@studio.com");
-        cy.get('input[formControlName=password]').type("test!1234");
-        cy.get('form').submit();
-        cy.wait('@login');
-        cy.url().should('include', '/sessions');
-
-        // Aller sur le détail de la session
-        cy.contains('Test').parents('mat-card').first().within(() => {
-            cy.get('button').contains("Detail").click();
-        });
-        cy.wait('@sessionDetail');
-        cy.wait('@getTeacher1');
-
-        // Vérifier que le bouton "Participate" apparaît
-        cy.get('button').contains('Participate').should('exist');
-
-        // Après le clic, on change le mock pour simuler l'inscription
-        cy.intercept('GET', '/api/session/1', {
-            statusCode: 200,
-            body: {
-                id: 1,
-                name: "Test",
-                date: new Date(),
-                teacher_id: 1,
-                description: "Test description",
-                users: [1], // L'utilisateur est maintenant inscrit
-                createdAt: new Date(),
-                updatedAt: new Date()
-            }
-        }).as('sessionDetailAfterParticipate');
-
-        // Cliquer sur "Participate" et vérifier l'appel API
-        cy.get('button').contains('Participate').click();
-        cy.wait('@participate');
-        cy.wait('@sessionDetailAfterParticipate');
-
-        // Vérifier que le bouton a changé en "Do not participate"
-        cy.get('button').contains('Do not participate').should('exist');
-
-        // Après le clic sur "Do not participate", on re-mock la session sans l'utilisateur
-        cy.intercept('GET', '/api/session/1', {
-            statusCode: 200,
-            body: {
-                id: 1,
-                name: "Test",
-                date: new Date(),
-                teacher_id: 1,
-                description: "Test description",
-                users: [], // L'utilisateur n'est plus inscrit
-                createdAt: new Date(),
-                updatedAt: new Date()
-            }
-        }).as('sessionDetailAfterUnParticipate');
-
-        // Cliquer sur "Do not participate" et vérifier l'appel API
-        cy.get('button').contains('Do not participate').click();
-        cy.wait('@unParticipate');
-        cy.wait('@sessionDetailAfterUnParticipate');
-
-        // Vérifier que le bouton "Participate" réapparaît
-        cy.get('button').contains('Participate').should('exist');
+    cy.contains('Test').parents('mat-card').first().within(() => {
+      cy.get('button').contains("Detail").click();
     });
-    it('Permet de revenir en arrière avec le bouton retour', () => {
+    cy.wait('@getSession');
+
+    cy.url().should('include', '/sessions/detail/1');
+    cy.contains('Test').should('be.visible');
+    cy.contains('A small description').should('be.visible');
+    cy.contains('0 attendees').should('be.visible');
+    cy.contains('Create at:').should('be.visible');
+    cy.contains('Last update:').should('be.visible');
+    cy.contains('Participate').should('be.visible');
+    cy.contains('Delete').should('not.exist');
+  });
+
+  it('affiche les détails et le bouton Delete pour un admin', () => {
+    interceptCommon();
+
+    cy.loginAsAdmin();
+    cy.wait('@getSessions');
+
+    cy.contains('Test').parents('mat-card').first().within(() => {
+      cy.get('button').contains("Detail").click();
+    });
+    cy.wait('@getSession');
+
+    cy.url().should('include', '/sessions/detail/1');
+    cy.contains('Test').should('be.visible');
+    cy.contains('A small description').should('be.visible');
+    cy.contains('0 attendees').should('be.visible');
+    cy.contains('Create at:').should('be.visible');
+    cy.contains('Last update:').should('be.visible');
+    cy.contains('Delete').should('be.visible');
+    cy.contains('Participate').should('not.exist');
+  });
+
+  it('permet à un utilisateur de participer puis de se désinscrire d\'une session', () => {
+    const sessionNonInscrit = {
+      id: 1,
+      name: "Test",
+      date: new Date(),
+      teacher_id: 1,
+      description: "A small description",
+      users: [],
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    const sessionInscrit = {
+      ...sessionNonInscrit,
+      users: [2] // l'utilisateur est inscrit
+    };
+
+    cy.intercept('POST', '/api/auth/login', {
+      body: { id: 2, username: 'nonAdminUser', admin: false }
+    }).as('login');
+    cy.intercept('GET', '/api/teacher', { body: teachers }).as('getTeachers');
+    cy.intercept('GET', '/api/session', { body: [sessionNonInscrit] }).as('getSessions');
+    cy.intercept('GET', '/api/session/1', { body: sessionNonInscrit }).as('getSession');
+
+    cy.login('nonadmin@studio.com', 'test!1234');
+    cy.wait('@getSessions');
+
+    cy.contains('Test').parents('mat-card').first().within(() => {
+      cy.get('button').contains("Detail").click();
+    });
+    cy.wait('@getSession');
+
+    // Mock la participation (POST) et la session modifiée (utilisateur inscrit)
+    cy.intercept('POST', '/api/session/1/participate/2', { statusCode: 200 }).as('participate');
+    cy.intercept('GET', '/api/session/1', { body: sessionInscrit }).as('getSessionAfterParticipate');
+
+    cy.get('button').contains('Participate').click();
+    cy.wait('@participate');
+    cy.wait('@getSessionAfterParticipate');
+
+    cy.get('button').contains('Do not participate').should('be.visible');
+
+    // Mock la désinscription (DELETE) et la session modifiée (utilisateur non inscrit)
+    cy.intercept('DELETE', '/api/session/1/participate/2', { statusCode: 200 }).as('unparticipate');
+    cy.intercept('GET', '/api/session/1', { body: sessionNonInscrit }).as('getSessionAfterUnparticipate');
+
+    cy.get('button').contains('Do not participate').click();
+    cy.wait('@unparticipate');
+    cy.wait('@getSessionAfterUnparticipate');
+
+    cy.get('button').contains('Participate').should('be.visible');
+  });
+  it('Permet de revenir en arrière avec le bouton retour', () => {
     // Mocks nécessaires
     cy.intercept('POST', '/api/auth/login', {
         statusCode: 200,

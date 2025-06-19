@@ -124,4 +124,15 @@ describe('User Registration', () => {
     cy.wait('@registerTrim');
   });
 
+  it('should show error if required fields are missing', () => {
+  // Soumettre sans rien remplir
+  cy.get('form').submit();
+  cy.contains('An error occurred').should('be.visible');
+
+  // Remplir partiellement
+  cy.get('input[formControlName=firstName]').type('John');
+  cy.get('form').submit();
+  cy.contains('An error occurred').should('be.visible');
+});
+
 });
