@@ -77,4 +77,18 @@ describe('MeComponent', () => {
     expect(sessionServiceMock.logOut).toHaveBeenCalled();
     expect(routerMock.navigate).toHaveBeenCalledWith(['/']);
   });
+
+  it('should display user info', () => {
+  component.user = {
+    id: 1,
+    firstName: 'A',
+    lastName: 'B',
+    email: 'a@b.com',
+    admin: false,
+    password: '',
+    createdAt: new Date()
+  };
+  fixture.detectChanges();
+  expect(fixture.nativeElement.textContent).toContain('A B');
+});
 });

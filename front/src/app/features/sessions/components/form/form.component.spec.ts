@@ -158,4 +158,16 @@ describe('FormComponent', () => {
       description: 'desc'
     });
   });
+
+  it('should disable submit if required fields are missing', () => {
+    component.sessionForm?.setValue({ name: '', date: '', teacher_id: '', description: '' });
+    expect(component.sessionForm?.valid).toBe(false);
+  });
+
+  it('should call sessionApiService.create on valid submit', () => {
+    const spy = jest.spyOn(sessionApiServiceMock, 'create').mockReturnValue(of({}));
+    component.sessionForm?.setValue({ name: 'Test', date: '2025-01-01', teacher_id: 1, description: 'desc' });
+    component.submit();
+    expect(spy).toHaveBeenCalled();
+  });
 });

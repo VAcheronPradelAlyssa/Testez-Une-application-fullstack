@@ -146,4 +146,86 @@ void testConstructorStringVariants() {
     assertThrows(NullPointerException.class, () -> new User("mail@mail.com", "Doe", null, "pwd", true));
     assertThrows(NullPointerException.class, () -> new User("mail@mail.com", "Doe", "John", null, true));
 }
+
+@Test
+void testEqualsAndHashCodeBranches() {
+    LocalDateTime now = LocalDateTime.now();
+
+    // id null dans les deux objets
+    User uNull1 = new User(null, "a@a.com", "Doe", "John", "pass", true, now, now);
+    User uNull2 = new User(null, "a@a.com", "Doe", "John", "pass", true, now, now);
+    assertEquals(uNull1, uNull2);
+    assertEquals(uNull1.hashCode(), uNull2.hashCode());
+
+    // id null vs id non null
+    User uWithId = new User(2L, "a@a.com", "Doe", "John", "pass", true, now, now);
+    assertNotEquals(uNull1, uWithId);
+    assertNotEquals(uWithId, uNull1);
+
+    // id égal, autres champs différents
+    User uDiff = new User(2L, "b@b.com", "Smith", "Jane", "pwd", false, now, now);
+    assertEquals(uWithId, uDiff); // equals ne regarde que l'id
+    assertEquals(uWithId.hashCode(), uDiff.hashCode());
+
+    // Comparaison avec un autre type
+    assertNotEquals(uWithId, "string");
+    // Comparaison avec null
+    assertNotEquals(uWithId, null);
+}
+@Test
+void testBuilderAndAllArgsConstructorBranches() {
+    LocalDateTime now = LocalDateTime.now();
+
+    // Builder avec tous les champs
+    User user = User.builder()
+            .id(10L)
+            .email("test@test.com")
+            .lastName("Doe")
+            .firstName("John")
+            .password("pwd")
+            .admin(true)
+            .createdAt(now)
+            .updatedAt(now)
+            .build();
+    assertEquals(10L, user.getId());
+    assertEquals("test@test.com", user.getEmail());
+    assertEquals("Doe", user.getLastName());
+    assertEquals("John", user.getFirstName());
+    assertEquals("pwd", user.getPassword());
+    assertTrue(user.isAdmin());
+    assertEquals(now, user.getCreatedAt());
+    assertEquals(now, user.getUpdatedAt());
+
+    // AllArgsConstructor avec tous les champs
+    User user2 = new User(11L, "a@a.com", "Smith", "Jane", "pass", false, now, now);
+    assertEquals(11L, user2.getId());
+    assertEquals("a@a.com", user2.getEmail());
+    assertEquals("Smith", user2.getLastName());
+    assertEquals("Jane", user2.getFirstName());
+    assertEquals("pass", user2.getPassword());
+    assertFalse(user2.isAdmin());
+    assertEquals(now, user2.getCreatedAt());
+    assertEquals(now, user2.getUpdatedAt());
+
+    // Builder avec des valeurs null (sauf @NonNull)
+    User user3 = User.builder()
+            .id(null)
+            .email("b@b.com")
+            .lastName("Martin")
+            .firstName("Alice")
+            .password("pwd2")
+            .admin(false)
+            .createdAt(null)
+            .updatedAt(null)
+            .build();
+    assertNull(user3.getId());
+    assertNull(user3.getCreatedAt());
+    assertNull(user3.getUpdatedAt());
+
+    // AllArgsConstructor avec des valeurs null (sauf @NonNull)
+    User user4 = new User(null, "c@c.com", "Dupont", "Bob", "pwd3", true, null, null);
+    assertNull(user4.getId());
+    assertNull(user4.getCreatedAt());
+    assertNull(user4.getUpdatedAt());
+}
 }

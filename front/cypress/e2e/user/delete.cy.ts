@@ -22,12 +22,6 @@ describe('Suppression utilisateur - flow mocké complet', () => {
   };
 
   beforeEach(() => {
-    // Intercept login
-    cy.intercept('POST', '/api/auth/login', {
-      statusCode: 200,
-      body: { id: 2, token: 'fake-jwt-token', username: 'alice.martin@example.org' }
-    }).as('login');
-
     // Intercept GET /api/session (listing)
     cy.intercept('GET', '/api/session', {
       statusCode: 200,
@@ -48,19 +42,8 @@ describe('Suppression utilisateur - flow mocké complet', () => {
   });
 
   it('Utilisateur connecté, consulte ses sessions, va dans /me et voit le bouton delete', () => {
-    // 2. Connexion
-    cy.visit('/login');
-    cy.get('input[formControlName=email]').type('alice.martin@example.org');
-    cy.get('input[formControlName=password]').type('superSecret123');
-    cy.get('form').submit();
-    cy.wait('@login').then(() => {
-      // Stocke la session utilisateur (adapte le nom de la clé si nécessaire)
-      window.localStorage.setItem('sessionInformation', JSON.stringify({
-        id: 2,
-        token: 'fake-jwt-token',
-        username: 'alice.martin@example.org'
-      }));
-    });
+    // Connexion via la commande custom
+    cy.loginAsUser();
 
     // 3. Vérifie l’arrivée sur /sessions et la présence d'une session
     cy.url().should('include', '/sessions');

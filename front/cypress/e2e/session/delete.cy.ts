@@ -18,10 +18,6 @@ describe('Delete Session', () => {
 
   it('L\'admin supprime une session et il n\'en reste qu\'une', () => {
     // ─── 1. FAKE BACKEND ─────────────────────────────────────
-    cy.intercept('POST', '/api/auth/login', {
-      body: { id: 1, username: 'userName', admin: true }
-    }).as('login');
-
     cy.intercept('GET', '/api/teacher', { body: teachers }).as('getTeachers');
     cy.intercept('GET', '/api/teacher/1', { body: teachers[0] }).as('getTeacher1');
     cy.intercept('GET', '/api/teacher/2', { body: teachers[1] }).as('getTeacher2');
@@ -72,19 +68,10 @@ describe('Delete Session', () => {
       }
     ];
 
-    // ─── 2. VISIT + LOGIN ────────────────────────────────────
-    cy.visit('/login');
-    cy.get('input[formControlName=email]').type("yoga@studio.com", { delay: 100 });
-    cy.wait(300);
-    cy.get('input[formControlName=password]').type("test!1234", { delay: 100 });
-    cy.wait(300);
-    cy.get('form').submit();
-
-    cy.wait('@login');
+    // ─── 2. LOGIN ADMIN ─────────────────────────────────────
+    cy.loginAsAdmin();
     cy.wait('@getSessions');
     cy.wait(400);
-
-    // Vérifie qu'il y a bien 2 sessions au début
 
     // ─── 3. CLIQUE SUR “Detail” ───────────────────────────────
     cy.contains('A session name').parents('mat-card').first().within(() => {
@@ -104,8 +91,7 @@ describe('Delete Session', () => {
 
     // Vérifie la redirection et qu'il ne reste qu'une session
     cy.url().should('include', '/sessions');
+    cy.contains('Session deleted !').should('be.visible');
     cy.contains('Another session').should('be.visible');
-
-    
   });
 });

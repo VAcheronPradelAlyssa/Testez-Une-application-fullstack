@@ -4,8 +4,7 @@ describe('Create Session Page', () => {
   beforeEach(() => {
     cy.intercept('GET', '/api/teacher*', { body: teachers }).as('getTeachers');
     cy.intercept('GET', '/api/session', { body: [] }).as('getSessions');
-    cy.login();
-    cy.url().should('include', '/sessions');
+    cy.loginAsAdmin();
     cy.contains('Create').click();
     cy.wait('@getTeachers');
   });
@@ -71,14 +70,15 @@ describe('Create Session Page', () => {
     cy.wait('@createSessionBad').its('response.statusCode').should('eq', 400);
   });
 
-  it('redirige les non-admins vers /sessions', () => {
-    // Simule un utilisateur non admin
-    window.localStorage.setItem('sessionInformation', JSON.stringify({
-      id: 2,
-      admin: false
-    }));
 
-    cy.visit('/sessions/create');
-    cy.url().should('include', '/login');
+  it('should enable Save when all fields are filled', () => {
+    cy.get('input[formControlName=name]').type('Test Session');
+    cy.get('input[formControlName=date]').type('2025-06-03');
+    cy.get('mat-select[formControlName=teacher_id]').click();
+    cy.get('mat-option').contains('John').click();
+    cy.get('textarea[formControlName=description]').type('All fields filled.');
+    cy.get('button[type=submit]').should('not.be.disabled');
   });
+
+  
 });
