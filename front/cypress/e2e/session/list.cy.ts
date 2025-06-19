@@ -39,28 +39,27 @@ describe('Session list', () => {
     }
   ];
 
-  it('affiche la liste des sessions', () => {
-    // Mock API
-    cy.intercept('POST', '/api/auth/login', {
-      body: { id: 1, username: 'userName', admin: true }
-    }).as('login');
+  it('affiche la liste des sessions pour un admin', () => {
     cy.intercept('GET', '/api/teacher', { body: teachers }).as('getTeachers');
     cy.intercept('GET', '/api/session', { body: sessions }).as('getSessions');
 
-    // Connexion
-    cy.visit('/login');
-    cy.get('input[formControlName=email]').type("yoga@studio.com");
-    cy.get('input[formControlName=password]').type("test!1234");
-    cy.get('form').submit();
-
-    cy.wait('@login');
+    cy.loginAsAdmin();
     cy.wait('@getSessions');
     cy.wait(400);
 
-    
-cy.get('mat-card').filter(':contains("Yoga du matin"), :contains("Pilates du soir")');
-cy.contains('Yoga du matin').should('be.visible');
-cy.contains('Pilates du soir').should('be.visible');
+    cy.contains('Yoga du matin').should('be.visible');
+    cy.contains('Pilates du soir').should('be.visible');
+  });
 
+  it('affiche la liste des sessions pour un non-admin', () => {
+    cy.intercept('GET', '/api/teacher', { body: teachers }).as('getTeachers');
+    cy.intercept('GET', '/api/session', { body: sessions }).as('getSessions');
+
+    cy.loginAsUser();
+    cy.wait('@getSessions');
+    cy.wait(400);
+
+    cy.contains('Yoga du matin').should('be.visible');
+    cy.contains('Pilates du soir').should('be.visible');
   });
 });

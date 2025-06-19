@@ -1,6 +1,6 @@
 /// <reference types="cypress" />
 
-describe('Session edit e2e test', () => {
+describe('Edition de session par un admin', () => {
   const teachers = [
     {
       id: 1,
@@ -18,84 +18,114 @@ describe('Session edit e2e test', () => {
     }
   ];
 
-  it('Edit a session', () => {
-    // ─── 1. FAKE BACKEND ─────────────────────────────────────
+  const sessionAvant = {
+    id: 1,
+    name: "Yoga du matin",
+    date: new Date(),
+    teacher_id: 1,
+    description: "Séance douce",
+    users: [],
+    createdAt: new Date(),
+    updatedAt: new Date()
+  };
+
+  const sessionApres = {
+    ...sessionAvant,
+    name: "Yoga modifié"
+  };
+
+  beforeEach(() => {
+    // Mock login admin (si besoin)
     cy.intercept('POST', '/api/auth/login', {
-      body: { id: 1, username: 'userName', admin: true }
-    }).as('login');
-
-    cy.intercept('GET', '/api/teacher', { body: teachers }).as('getTeachers');
-
-    // Initial GET /api/session (avant modif)
-    cy.intercept('GET', '/api/session', {
-      body: [
-        {
-          id: 1,
-          name: "A session name",
-          date: new Date(),
-          teacher_id: 1,
-          description: "A small description",
-          users: [],
-          createdAt: new Date(),
-          updatedAt: new Date()
-        }
-      ]
-    }).as('getSessions');
-
-    cy.intercept('GET', '/api/session/1', {
+      statusCode: 200,
       body: {
         id: 1,
-        name: "Test",
-        date: new Date(),
-        teacher_id: 1,
-        description: "A small description",
-        users: [],
-        createdAt: new Date(),
-        updatedAt: new Date()
+        username: 'admin',
+        email: 'yoga@studio.com',
+        admin: true,
+        token: 'fake-jwt-token'
       }
-    }).as('getSession');
+    }).as('loginRequest');
 
-    cy.intercept('PUT', '/api/session/1', { statusCode: 200 }).as('updateSession');
+    // Mock endpoint qui vérifie le rôle admin
+    cy.intercept('GET', '/api/auth/me', {
+      statusCode: 200,
+      body: {
+        id: 1,
+        username: 'admin',
+        email: 'yoga@studio.com',
+        admin: true
+      }
+    }).as('me');
 
-    // ─── 2. VISIT + LOGIN ────────────────────────────────────
-    cy.visit('/login');
-    cy.get('input[formControlName=email]').type("yoga@studio.com");
-    cy.get('input[formControlName=password]').type("test!1234");
-    cy.get('form').submit();
+    // Mock teachers
+    cy.intercept('GET', '/api/teacher', { body: teachers }).as('getTeachers');
 
-    cy.wait('@login');
+    // Mock sessions (listing)
+    cy.intercept('GET', '/api/session', { body: [sessionAvant] }).as('getSessions');
+
+    // Mock session detail (avant modif)
+    cy.intercept('GET', '/api/session/1', { body: sessionAvant }).as('getSessionDetail');
+  });
+
+  it('L\'admin édite une session avec succès', () => {
+    // Connexion admin via commande custom
+    cy.loginAsAdmin();
     cy.wait('@getSessions');
 
-    // ─── 3. CLIQUE SUR “Edit” ───────────────────────────────
-    cy.contains('button', 'Edit').should('be.visible').click();
-    cy.wait('@getSession');
-
+    // Clique sur "Edit" de la session
+    cy.contains('Yoga du matin').parents('mat-card').first().within(() => {
+      cy.get('button').contains('Edit').click();
+    });
+    cy.wait('@getSessionDetail');
     cy.url().should('include', '/sessions/update/1');
 
-    cy.get('mat-form-field input[formControlName=name]').should('be.visible').clear().type("Test");
+    // Modifie le nom de la session
+    cy.get('input[formControlName=name]').clear().type('Yoga modifié');
 
-    // Avant de soumettre, prépare le mock du GET /api/session pour le retour
-    cy.intercept('GET', '/api/session', {
-      body: [
-        {
-          id: 1,
-          name: "Test", // le nouveau nom !
-          date: new Date(),
-          teacher_id: 1,
-          description: "A small description",
-          users: [],
-          createdAt: new Date(),
-          updatedAt: new Date()
-        }
-      ]
-    }).as('getSessionsAfterUpdate');
+    // Prépare le mock de la requête PUT (modification)
+    cy.intercept('PUT', '/api/session/1', {
+      statusCode: 200,
+      body: sessionApres
+    }).as('updateSession');
 
+    // Prépare le mock du GET /api/session après modif (listing mis à jour)
+    cy.intercept('GET', '/api/session', { body: [sessionApres] }).as('getSessionsAfterUpdate');
+
+    // Soumet le formulaire
     cy.get('button[type=submit]').click();
     cy.wait('@updateSession');
     cy.wait('@getSessionsAfterUpdate');
 
-    // Vérifie que le nouveau nom apparaît dans la liste
+    // Vérifie le retour sur la liste et la présence du nouveau nom
     cy.url().should('include', '/sessions');
-    cy.contains('Test').should('be.visible');
+    cy.contains('Session updated !').should('be.visible');
+    cy.contains('Yoga modifié').should('be.visible');
+  });
+
+  it('Le bouton Save reste désactivé si un champ requis est manquant', () => {
+    cy.loginAsAdmin();
+    cy.wait('@getSessions');
+
+    // Clique sur "Edit" de la session
+    cy.contains('Yoga du matin').parents('mat-card').first().within(() => {
+      cy.get('button').contains('Edit').click();
+    });
+    cy.wait('@getSessionDetail');
+    cy.url().should('include', '/sessions/update/1');
+
+    // Vide le champ nom (requis)
+    cy.get('input[formControlName=name]').clear();
+    cy.get('button[type=submit]').should('be.disabled');
+
+    // Remet un nom, vide la date (requis)
+    cy.get('input[formControlName=name]').type('Yoga du matin');
+    cy.get('input[formControlName=date]').clear();
+    cy.get('button[type=submit]').should('be.disabled');
+
+    // Remet une date, vide la description (requis)
+    cy.get('input[formControlName=date]').type('2025-06-01');
+    cy.get('textarea[formControlName=description]').clear();
+    cy.get('button[type=submit]').should('be.disabled');
   });
 });

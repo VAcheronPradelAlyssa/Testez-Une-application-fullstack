@@ -129,8 +129,8 @@ describe('Detail Session - affichage infos et boutons selon le rôle', () => {
 
     cy.get('button').contains('Participate').should('be.visible');
   });
+
   it('Permet de revenir en arrière avec le bouton retour', () => {
-    // Mocks nécessaires
     cy.intercept('POST', '/api/auth/login', {
         statusCode: 200,
         body: {
@@ -178,12 +178,8 @@ describe('Detail Session - affichage infos et boutons selon le rôle', () => {
         }
     }).as('getTeacher1');
 
-    // Connexion
-    cy.visit('/login');
-    cy.get('input[formControlName=email]').type("yoga@studio.com");
-    cy.get('input[formControlName=password]').type("test!1234");
-    cy.get('form').submit();
-    cy.wait('@login');
+    // Connexion via commande custom
+    cy.login('yoga@studio.com', 'test!1234');
     cy.url().should('include', '/sessions');
 
     // Aller sur le détail de la session
@@ -198,5 +194,5 @@ describe('Detail Session - affichage infos et boutons selon le rôle', () => {
 
     // Vérifier qu'on revient à la page des sessions
     cy.url().should('include', '/sessions');
-});
+  });
 });
