@@ -42,6 +42,7 @@ class AuthTokenFilterTest {
     }
 
     @Test
+    // Vérifie qu'un JWT valide positionne l'authentification dans le contexte de sécurité
     void doFilterInternal_validJwt_setsAuthentication() throws ServletException, IOException {
         String jwt = "valid.jwt.token";
         String username = "user@example.com";
@@ -65,6 +66,7 @@ class AuthTokenFilterTest {
     }
 
     @Test
+    // Vérifie qu'en l'absence de JWT, aucune authentification n'est positionnée
     void doFilterInternal_noJwt_doesNotSetAuthentication() throws ServletException, IOException {
         MockHttpServletRequest request = new MockHttpServletRequest();
         MockHttpServletResponse response = new MockHttpServletResponse();
@@ -78,6 +80,7 @@ class AuthTokenFilterTest {
     }
 
     @Test
+    // Vérifie qu'une exception dans le filtre ne bloque pas la chaîne et n'authentifie pas
     void doFilterInternal_exceptionInFilter_logsErrorAndContinues() throws ServletException, IOException {
         String jwt = "valid.jwt.token";
         String username = "user@example.com";

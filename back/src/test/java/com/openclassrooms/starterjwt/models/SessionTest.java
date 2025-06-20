@@ -12,6 +12,7 @@ import static org.junit.jupiter.api.Assertions.*;
 public class SessionTest {
 
     @Test
+    // Vérifie les getters et setters de la classe Session
     void testSettersAndGetters() {
         Session session = new Session();
         session.setId(1L);
@@ -38,6 +39,7 @@ public class SessionTest {
     }
 
     @Test
+    // Vérifie les méthodes equals et hashCode (cas principaux)
     void testEqualsAndHashCode() {
         Date date = new Date();
         LocalDateTime now = LocalDateTime.now();
@@ -61,6 +63,7 @@ public class SessionTest {
     }
 
     @Test
+    // Vérifie la méthode toString et le builder de Session
     void testToStringAndBuilder() {
         Date date = new Date();
         LocalDateTime now = LocalDateTime.now();
@@ -84,7 +87,8 @@ public class SessionTest {
         assertTrue(str.contains("Relaxation"));
     }
     @Test
-void testEqualsAndHashCodeBranches() {
+    // Vérifie les branches particulières de equals et hashCode (id null, types différents)
+    void testEqualsAndHashCodeBranches() {
     Date date = new Date();
     LocalDateTime now = LocalDateTime.now();
 

@@ -9,6 +9,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class UserTest {
 
     @Test
+    // Vérifie les constructeurs, setters et getters de User
     void testConstructorsAndSetters() {
         // Test constructeur complet
         LocalDateTime now = LocalDateTime.now();
@@ -42,6 +43,7 @@ class UserTest {
     }
 
     @Test
+    // Vérifie equals, hashCode et toString (cas principaux)
     void testEqualsAndHashCodeAndToString() {
         LocalDateTime now = LocalDateTime.now();
         User user1 = new User(1L, "a@a.com", "Doe", "John", "pass", true, now, now);
@@ -68,6 +70,7 @@ class UserTest {
     }
 
     @Test
+    // Vérifie equals avec id null
     void testEqualsWithNullId() {
         User user1 = new User(null, "a@a.com", "Doe", "John", "pass", true, null, null);
         User user2 = new User(null, "a@a.com", "Doe", "John", "pass", true, null, null);
@@ -78,6 +81,7 @@ class UserTest {
     }
 
     @Test
+    // Vérifie le builder et les accesseurs
     void testBuilderAndAccessors() {
         User user = User.builder()
                 .id(5L)
@@ -98,6 +102,7 @@ class UserTest {
         assertTrue(user.isAdmin());
     }
    @Test
+// Vérifie le constructeur sans id ni dates et les setters avec null (exception attendue)
 void testConstructorSansIdEtDatesEtSettersNulls() {
     // Constructeur sans id ni dates
     User user = new User("mail@mail.com", "Doe", "John", "pwd", true);
@@ -116,6 +121,7 @@ void testConstructorSansIdEtDatesEtSettersNulls() {
 }
 
 @Test
+// Vérifie les setters avec différentes valeurs
 void testSettersWithVariousValues() {
     User user = new User();
     user.setEmail("test@test.com");
@@ -131,6 +137,7 @@ void testSettersWithVariousValues() {
     assertTrue(user.isAdmin());
 }
 @Test
+// Vérifie le constructeur String et les exceptions sur @NonNull
 void testConstructorStringVariants() {
     // Tous les paramètres valides
     User user = new User("mail@mail.com", "Doe", "John", "pwd", true);
@@ -148,6 +155,7 @@ void testConstructorStringVariants() {
 }
 
 @Test
+// Vérifie les branches particulières de equals et hashCode
 void testEqualsAndHashCodeBranches() {
     LocalDateTime now = LocalDateTime.now();
 
@@ -173,6 +181,7 @@ void testEqualsAndHashCodeBranches() {
     assertNotEquals(uWithId, null);
 }
 @Test
+// Vérifie le builder et le AllArgsConstructor avec différentes valeurs
 void testBuilderAndAllArgsConstructorBranches() {
     LocalDateTime now = LocalDateTime.now();
 

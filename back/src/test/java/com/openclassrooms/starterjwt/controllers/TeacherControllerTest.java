@@ -15,6 +15,9 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import java.util.Collections;
 import java.util.List;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -37,6 +40,7 @@ public class TeacherControllerTest {
 
     // ----------- findById tests ------------
 
+    // Vérifie qu'on récupère un enseignant existant (200 attendu)
     @Test
     void findById_shouldReturnTeacher_whenFound() throws Exception {
         Teacher teacher = new Teacher();
@@ -59,6 +63,7 @@ public class TeacherControllerTest {
         verify(teacherMapper, times(1)).toDto(teacher);
     }
 
+     // Vérifie qu'on obtient 404 si l'enseignant n'existe pas
     @Test
     void findById_shouldReturn404_whenNotFound() throws Exception {
         when(teacherService.findById(99L)).thenReturn(null);
@@ -71,6 +76,7 @@ public class TeacherControllerTest {
         verify(teacherMapper, never()).toDto(any(Teacher.class));
     }
 
+    // Vérifie qu'on obtient 400 si l'id n'est pas valide
     @Test
     void findById_shouldReturn400_whenInvalidId() throws Exception {
         mockMvc.perform(get("/api/teacher/invalidId")
@@ -83,6 +89,7 @@ public class TeacherControllerTest {
 
     // ----------- findAll tests ------------
 
+    // Vérifie que la liste des enseignants est bien retournée
     @Test
     void findAll_shouldReturnListOfTeachers_whenNotEmpty() throws Exception {
         Teacher teacher = new Teacher();
@@ -105,7 +112,8 @@ public class TeacherControllerTest {
         verify(teacherService, times(1)).findAll();
         verify(teacherMapper, times(1)).toDto(anyList());
     }
-
+    
+    // Vérifie qu'on obtient une liste vide si aucun enseignant n'existe
     @Test
     void findAll_shouldReturnEmptyList_whenNoTeachers() throws Exception {
         when(teacherService.findAll()).thenReturn(Collections.emptyList());

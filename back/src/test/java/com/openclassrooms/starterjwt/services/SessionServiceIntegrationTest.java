@@ -54,6 +54,7 @@ session1.setUsers(new ArrayList<>());
 session1 = sessionRepository.save(session1);
 }
    @Test
+    // Vérifie que la création d'une session fonctionne et persiste bien en base
 void createSession_shouldPersistSession() {
     Session newSession = new Session();
     newSession.setName("Nouvelle session");
@@ -66,7 +67,8 @@ void createSession_shouldPersistSession() {
     assertThat(saved.getName()).isEqualTo("Nouvelle session");
 }
     @Test
-    void participate_shouldAddUserToSession() {
+    // Vérifie qu'un utilisateur peut participer à une session
+void participate_shouldAddUserToSession() {
         sessionService.participate(session1.getId(), user1.getId());
 
         Session updated = sessionRepository.findById(session1.getId()).orElseThrow();
@@ -74,6 +76,7 @@ void createSession_shouldPersistSession() {
     }
 
     @Test
+    // Vérifie qu'une exception est levée si l'utilisateur participe déjà à la session
     void participate_whenUserAlreadyParticipates_shouldThrow() {
         sessionService.participate(session1.getId(), user1.getId());
 
@@ -82,6 +85,7 @@ void createSession_shouldPersistSession() {
     }
 
     @Test
+    // Vérifie qu'une exception est levée si la session ou l'utilisateur n'existe pas
     void participate_whenSessionOrUserNotFound_shouldThrow() {
         Long unknownId = 9999L;
         assertThatThrownBy(() -> sessionService.participate(unknownId, user1.getId()))
@@ -91,6 +95,7 @@ void createSession_shouldPersistSession() {
     }
 
     @Test
+    // Vérifie qu'un utilisateur peut se désinscrire d'une session
     void noLongerParticipate_shouldRemoveUserFromSession() {
         sessionService.participate(session1.getId(), user1.getId());
         sessionService.noLongerParticipate(session1.getId(), user1.getId());
@@ -100,12 +105,14 @@ void createSession_shouldPersistSession() {
     }
 
     @Test
+    // Vérifie qu'une exception est levée si l'utilisateur n'est pas inscrit à la session
     void noLongerParticipate_whenUserNotParticipating_shouldThrow() {
         assertThatThrownBy(() -> sessionService.noLongerParticipate(session1.getId(), user1.getId()))
             .isInstanceOf(BadRequestException.class);
     }
 
     @Test
+    // Vérifie que la suppression d'une session fonctionne
     void delete_shouldRemoveSession() {
         sessionService.delete(session1.getId());
 

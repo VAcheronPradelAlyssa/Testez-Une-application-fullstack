@@ -51,6 +51,7 @@ public class TeacherControllerIntegrationTest {
         teacherRepository.deleteAll(); // Nettoie la base après chaque test
     }
 
+    // Vérifie qu'on récupère un enseignant existant (200 attendu)
     @Test
     void findById_shouldReturnTeacher() throws Exception {
         mockMvc.perform(get("/api/teacher/" + savedTeacher.getId())
@@ -60,6 +61,7 @@ public class TeacherControllerIntegrationTest {
                 .andExpect(jsonPath("$.lastName").value("Dupont"));
     }
 
+    // Vérifie qu'on obtient 404 si l'enseignant n'existe pas
     @Test
     void findById_shouldReturn404WhenNotFound() throws Exception {
         mockMvc.perform(get("/api/teacher/999999")
@@ -67,6 +69,7 @@ public class TeacherControllerIntegrationTest {
                 .andExpect(status().isNotFound());
     }
 
+    // Vérifie qu'on obtient 400 si l'id n'est pas valide
     @Test
     void findById_shouldReturnBadRequestWhenInvalidId() throws Exception {
         mockMvc.perform(get("/api/teacher/notANumber")
@@ -74,6 +77,7 @@ public class TeacherControllerIntegrationTest {
                 .andExpect(status().isBadRequest());
     }
 
+    // Vérifie que la liste des enseignants est bien retournée
     @Test
     void findAll_shouldReturnListOfTeachers() throws Exception {
         mockMvc.perform(get("/api/teacher")
@@ -83,6 +87,7 @@ public class TeacherControllerIntegrationTest {
                 .andExpect(jsonPath("$[0].firstName").value("Margot"));
     }
 
+    // Vérifie qu'on obtient une liste vide si aucun enseignant n'existe
     @Test
     void findAll_shouldReturnEmptyListWhenNoneExists() throws Exception {
         teacherRepository.deleteAll();

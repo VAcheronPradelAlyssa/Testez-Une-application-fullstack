@@ -21,6 +21,7 @@ public class TeacherMapperImplTest {
     }
 
     @Test
+    // Vérifie la conversion d'un TeacherDto en Teacher (cas standard)
     void testToEntity() {
         TeacherDto dto = new TeacherDto();
         dto.setId(1L);
@@ -40,6 +41,7 @@ public class TeacherMapperImplTest {
     }
 
     @Test
+    // Vérifie la conversion d'un Teacher en TeacherDto (cas standard)
     void testToDto() {
         Teacher entity = Teacher.builder()
                 .id(2L)
@@ -60,6 +62,7 @@ public class TeacherMapperImplTest {
     }
 
     @Test
+    // Vérifie la conversion d'une liste de TeacherDto en liste de Teacher
     void testToEntityList() {
         TeacherDto dto1 = new TeacherDto();
         dto1.setId(1L);
@@ -79,6 +82,7 @@ public class TeacherMapperImplTest {
     }
 
     @Test
+    // Vérifie la conversion d'une liste de Teacher en liste de TeacherDto
     void testToDtoList() {
         Teacher entity1 = Teacher.builder().id(1L).firstName("John").lastName("Doe").build();
         Teacher entity2 = Teacher.builder().id(2L).firstName("Jane").lastName("Smith").build();
@@ -91,6 +95,7 @@ public class TeacherMapperImplTest {
     }
 
     @Test
+    // Vérifie que les méthodes de mapping gèrent bien les cas null
     void testNullCases() {
         assertNull(mapper.toEntity((TeacherDto) null));
         assertNull(mapper.toDto((Teacher) null));

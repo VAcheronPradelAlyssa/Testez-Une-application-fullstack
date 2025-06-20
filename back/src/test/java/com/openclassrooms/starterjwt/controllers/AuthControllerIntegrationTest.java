@@ -26,7 +26,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
-@ActiveProfiles("test") // Charge application-test.properties (avec base dédiée)
+@ActiveProfiles("test")
 public class AuthControllerIntegrationTest {
 
     @Autowired
@@ -56,6 +56,7 @@ void setup() {
         userRepository.deleteAll();
     }
 
+    // Vérifie que l'inscription d'un nouvel utilisateur fonctionne et retourne un statut 200.
     @Test
     void registerUser_shouldReturn200() throws Exception {
         SignupRequest signupRequest = new SignupRequest();
@@ -70,6 +71,7 @@ void setup() {
                 .andExpect(status().isOk());
     }
 
+    // Vérifie que la connexion d'un utilisateur existant retourne bien un token JWT.
     @Test
     void login_shouldReturnToken() throws Exception {
         // Prépare un utilisateur en base pour tester la connexion

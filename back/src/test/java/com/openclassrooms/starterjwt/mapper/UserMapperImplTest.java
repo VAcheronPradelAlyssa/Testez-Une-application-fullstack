@@ -15,6 +15,7 @@ public class UserMapperImplTest {
     private final UserMapperImpl mapper = new UserMapperImpl();
 
     @Test
+    // Vérifie la conversion d'un UserDto en User (cas standard)
     void testToEntity() {
         UserDto dto = new UserDto();
         dto.setId(1L);
@@ -40,6 +41,7 @@ public class UserMapperImplTest {
     }
 
     @Test
+    // Vérifie la conversion d'un User en UserDto (cas standard)
     void testToDto() {
         User entity = User.builder()
                 .id(2L)
@@ -66,6 +68,7 @@ public class UserMapperImplTest {
     }
 
     @Test
+    // Vérifie la conversion d'une liste de UserDto en liste de User
     void testToEntityList() {
         UserDto dto1 = new UserDto();
         dto1.setId(1L);
@@ -97,6 +100,7 @@ public class UserMapperImplTest {
     }
 
     @Test
+    // Vérifie la conversion d'une liste de User en liste de UserDto
     void testToDtoList() {
         User user1 = User.builder()
                 .id(1L)
@@ -130,6 +134,7 @@ public class UserMapperImplTest {
     }
 
     @Test
+    // Vérifie que les méthodes de mapping gèrent bien les cas null
     void testNullCases() {
         assertNull(mapper.toEntity((UserDto) null));
         assertNull(mapper.toDto((User) null));

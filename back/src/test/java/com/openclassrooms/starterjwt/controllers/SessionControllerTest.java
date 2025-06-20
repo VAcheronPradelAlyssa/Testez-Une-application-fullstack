@@ -34,6 +34,7 @@ class SessionControllerTest {
 
     // ----- findById -----
 
+    // Vérifie qu'on récupère une session existante (200 attendu)
     @Test
     void findById_found() {
         Session session = new Session();
@@ -50,6 +51,7 @@ class SessionControllerTest {
         assertEquals(dto, response.getBody());
     }
 
+    // Vérifie qu'on obtient 404 si la session n'existe pas
     @Test
     void findById_notFound() {
         when(sessionService.getById(99L)).thenReturn(null);
@@ -60,6 +62,7 @@ class SessionControllerTest {
         assertNull(response.getBody());
     }
 
+    // Vérifie qu'on obtient 400 si l'id n'est pas valide
     @Test
     void findById_badRequest() {
         ResponseEntity<?> response = sessionController.findById("abc");
@@ -70,6 +73,7 @@ class SessionControllerTest {
 
     // ----- findAll -----
 
+    // Vérifie que la liste des sessions est bien retournée
     @Test
     void findAll_shouldReturnList() {
         Session s1 = new Session();
@@ -97,6 +101,7 @@ class SessionControllerTest {
 
     // ----- create -----
 
+    // Vérifie que la création d'une session fonctionne
     @Test
     void create_shouldReturnCreatedSession() {
         SessionDto inputDto = new SessionDto();
@@ -125,6 +130,7 @@ class SessionControllerTest {
 
     // ----- update -----
 
+    // Vérifie que la mise à jour d'une session fonctionne
     @Test
     void update_shouldReturnUpdatedSession() {
         SessionDto inputDto = new SessionDto();
@@ -151,6 +157,7 @@ class SessionControllerTest {
         assertEquals(outputDto, response.getBody());
     }
 
+    // Vérifie qu'on obtient 400 si l'id pour update n'est pas valide
     @Test
     void update_badRequest_invalidId() {
         ResponseEntity<?> response = sessionController.update("abc", new SessionDto());
@@ -160,6 +167,7 @@ class SessionControllerTest {
 
     // ----- delete -----
 
+    // Vérifie que la suppression d'une session existante fonctionne
     @Test
     void delete_shouldReturnOkIfDeleted() {
         Session session = new Session();
@@ -173,6 +181,7 @@ class SessionControllerTest {
         verify(sessionService).delete(1L);
     }
 
+      // Vérifie qu'on obtient 404 si on veut supprimer une session inexistante
     @Test
     void delete_notFound() {
         when(sessionService.getById(99L)).thenReturn(null);
@@ -182,6 +191,7 @@ class SessionControllerTest {
         assertEquals(404, response.getStatusCodeValue());
     }
 
+    // Vérifie qu'on obtient 400 si l'id pour delete n'est pas valide
     @Test
     void delete_badRequest_invalidId() {
         ResponseEntity<?> response = sessionController.save("abc");
@@ -191,6 +201,7 @@ class SessionControllerTest {
 
     // ----- participate -----
 
+    // Vérifie que la participation à une session fonctionne
     @Test
     void participate_shouldReturnOk() {
         doNothing().when(sessionService).participate(1L, 2L);
@@ -200,6 +211,7 @@ class SessionControllerTest {
         assertEquals(200, response.getStatusCodeValue());
     }
 
+     // Vérifie qu'on obtient 400 si les ids pour participer ne sont pas valides
     @Test
     void participate_badRequest_invalidIds() {
         ResponseEntity<?> response = sessionController.participate("abc", "xyz");
@@ -209,6 +221,7 @@ class SessionControllerTest {
 
     // ----- noLongerParticipate -----
 
+    // Vérifie que l'annulation de participation fonctionne
     @Test
     void noLongerParticipate_shouldReturnOk() {
         doNothing().when(sessionService).noLongerParticipate(1L, 2L);
@@ -218,6 +231,7 @@ class SessionControllerTest {
         assertEquals(200, response.getStatusCodeValue());
     }
 
+    // Vérifie qu'on obtient 400 si les ids pour annuler la participation ne sont pas valides
     @Test
     void noLongerParticipate_badRequest_invalidIds() {
         ResponseEntity<?> response = sessionController.noLongerParticipate("abc", "xyz");

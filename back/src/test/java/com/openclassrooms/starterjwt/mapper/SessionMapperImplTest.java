@@ -33,6 +33,7 @@ public class SessionMapperImplTest {
         mapper.userService = userService;
     }
 
+     // Vérifie la conversion d'un SessionDto en Session (cas standard)
     @Test
     void testToEntity() {
         SessionDto dto = new SessionDto();
@@ -65,6 +66,7 @@ public class SessionMapperImplTest {
         assertTrue(entity.getUsers().stream().anyMatch(u -> u.getId().equals(101L)));
     }
 
+    // Vérifie la conversion d'un Session en SessionDto (cas standard)
     @Test
     void testToDto() {
         Teacher teacher = Teacher.builder().id(10L).firstName("John").lastName("Doe").build();
@@ -94,6 +96,7 @@ public class SessionMapperImplTest {
         assertTrue(dto.getUsers().contains(user2.getId()));
     }
 
+    // Vérifie la conversion d'une liste de SessionDto en liste de Session
     @Test
     void testToEntityList() {
         SessionDto dto1 = new SessionDto();
@@ -135,6 +138,7 @@ public class SessionMapperImplTest {
         assertEquals(dto2.getId(), entityList.get(1).getId());
     }
 
+     // Vérifie la conversion d'une liste de Session en liste de SessionDto
     @Test
     void testToDtoList() {
         Teacher teacher1 = Teacher.builder().id(10L).firstName("John").lastName("Doe").build();
@@ -173,6 +177,7 @@ public class SessionMapperImplTest {
         assertEquals(session2.getId(), dtoList.get(1).getId());
     }
 
+    // Vérifie que les méthodes de mapping gèrent bien les cas null
     @Test
     void testNullCases() {
         assertNull(mapper.toEntity((SessionDto) null));
@@ -181,6 +186,7 @@ public class SessionMapperImplTest {
         assertNull(mapper.toDto((List<Session>) null));
     }
 
+    // Vérifie la conversion d'un SessionDto avec teacher_id null
      @Test
     void testToEntity_teacherIdNull() {
         SessionDto dto = new SessionDto();
@@ -203,6 +209,7 @@ public class SessionMapperImplTest {
         assertEquals(1, entity.getUsers().size());
     }
 
+    // Vérifie la conversion d'un SessionDto avec users null ou inconnus
     @Test
     void testToEntity_usersNullOrUnknown() {
         // users null
@@ -229,6 +236,7 @@ public class SessionMapperImplTest {
         assertNull(entityUnknown.getUsers().get(0));
     }
 
+    // Vérifie la méthode privée sessionTeacherId pour les cas null
     @Test
 void testSessionTeacherId_nullCases() throws Exception {
     // session null

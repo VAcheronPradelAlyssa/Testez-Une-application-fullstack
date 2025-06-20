@@ -22,6 +22,7 @@ class UserServiceTest {
     }
 
     @Test
+    // Vérifie que la méthode delete appelle bien deleteById du repository
     void delete_shouldCallRepositoryDeleteById() {
         Long userId = 1L;
 
@@ -31,6 +32,7 @@ class UserServiceTest {
     }
 
     @Test
+    // Vérifie que findById retourne l'utilisateur quand il existe
     void findById_shouldReturnUser_whenUserExists() {
         Long userId = 1L;
         User expectedUser = new User();
@@ -46,6 +48,7 @@ class UserServiceTest {
     }
 
     @Test
+    // Vérifie que findById retourne null quand l'utilisateur n'existe pas
     void findById_shouldReturnNull_whenUserDoesNotExist() {
         Long userId = 2L;
 

@@ -9,6 +9,7 @@ import static org.junit.jupiter.api.Assertions.*;
 public class TeacherTest {
 
     @Test
+    // Vérifie les getters et setters de la classe Teacher
     void testSettersAndGetters() {
         Teacher teacher = new Teacher();
         teacher.setId(1L);
@@ -26,6 +27,7 @@ public class TeacherTest {
     }
 
     @Test
+    // Vérifie les branches particulières de equals et hashCode (id null, id égal, types différents)
     void testEqualsAndHashCodeBranches() {
         LocalDateTime now = LocalDateTime.now();
 
@@ -52,6 +54,7 @@ public class TeacherTest {
     }
 
     @Test
+    // Vérifie la méthode toString et le builder de Teacher
     void testToStringAndBuilder() {
         LocalDateTime now = LocalDateTime.now();
         Teacher teacher = Teacher.builder()

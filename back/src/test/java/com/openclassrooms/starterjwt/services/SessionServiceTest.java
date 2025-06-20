@@ -46,6 +46,7 @@ class SessionServiceTest {
     // --- CREATE ---
 
     @Test
+    // Vérifie que la création d'une session appelle bien le repository et retourne la session
     void create_shouldSaveAndReturn() {
         when(sessionRepo.save(sampleSession)).thenReturn(sampleSession);
 
@@ -58,6 +59,7 @@ class SessionServiceTest {
     // --- DELETE ---
 
     @Test
+    // Vérifie que la suppression d'une session appelle bien le repository
     void delete_shouldInvokeRepository() {
         service.delete(100L);
         verify(sessionRepo).deleteById(100L);
@@ -66,6 +68,7 @@ class SessionServiceTest {
     // --- FIND ALL ---
 
     @Test
+    // Vérifie que findAll retourne bien la liste des sessions
     void findAll_shouldReturnList() {
         List<Session> all = List.of(sampleSession);
         when(sessionRepo.findAll()).thenReturn(all);
@@ -79,6 +82,7 @@ class SessionServiceTest {
     // --- GET BY ID ---
 
     @Test
+    // Vérifie que getById retourne la session si elle existe
     void getById_existing_shouldReturnSession() {
         when(sessionRepo.findById(100L)).thenReturn(Optional.of(sampleSession));
 
@@ -89,6 +93,7 @@ class SessionServiceTest {
     }
 
     @Test
+    // Vérifie que getById retourne null si la session n'existe pas
     void getById_missing_shouldReturnNull() {
         when(sessionRepo.findById(100L)).thenReturn(Optional.empty());
 
@@ -101,6 +106,7 @@ class SessionServiceTest {
     // --- UPDATE ---
 
     @Test
+    // Vérifie que update sauvegarde et retourne la session mise à jour
     void update_shouldSaveAndReturnUpdated() {
         Session toUpdate = new Session();
         toUpdate.setId(100L);
@@ -121,6 +127,7 @@ class SessionServiceTest {
     // --- PARTICIPATE NEGATIFS ---
 
     @Test
+    // Vérifie qu'une exception est levée si la session n'existe pas lors de la participation
     void participate_missingSession() {
         when(sessionRepo.findById(1L)).thenReturn(Optional.empty());
 
@@ -129,6 +136,7 @@ class SessionServiceTest {
     }
 
     @Test
+    // Vérifie qu'une exception est levée si l'utilisateur n'existe pas lors de la participation
     void participate_missingUser() {
         when(sessionRepo.findById(1L)).thenReturn(Optional.of(sampleSession));
         when(userRepo.findById(2L)).thenReturn(Optional.empty());
@@ -138,6 +146,7 @@ class SessionServiceTest {
     }
 
     @Test
+    // Vérifie qu'une exception est levée si l'utilisateur participe déjà à la session
     void participate_alreadyJoined() {
         sampleSession.getUsers().add(sampleUser);
         when(sessionRepo.findById(1L)).thenReturn(Optional.of(sampleSession));
@@ -150,6 +159,7 @@ class SessionServiceTest {
     // --- PARTICIPATE POSITIF ---
 
     @Test
+    // Vérifie qu'un utilisateur peut participer à une session
     void participate_success() {
         when(sessionRepo.findById(1L)).thenReturn(Optional.of(sampleSession));
         when(userRepo.findById(42L)).thenReturn(Optional.of(sampleUser));
@@ -164,6 +174,7 @@ class SessionServiceTest {
     // --- NO LONGER PARTICIPATE NEGATIFS ---
 
     @Test
+    // Vérifie qu'une exception est levée si la session n'existe pas lors du retrait
     void leave_missingSession() {
         when(sessionRepo.findById(1L)).thenReturn(Optional.empty());
 
@@ -172,6 +183,7 @@ class SessionServiceTest {
     }
 
     @Test
+    // Vérifie qu'une exception est levée si l'utilisateur n'est pas inscrit à la session
     void leave_notJoined() {
         when(sessionRepo.findById(1L)).thenReturn(Optional.of(sampleSession));
 
@@ -182,6 +194,7 @@ class SessionServiceTest {
     // --- NO LONGER PARTICIPATE POSITIF ---
 
     @Test
+    // Vérifie qu'un utilisateur peut se retirer d'une session
     void leave_success() {
         sampleSession.getUsers().add(sampleUser);
         when(sessionRepo.findById(1L)).thenReturn(Optional.of(sampleSession));

@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.*;
 public class UserDetailsImplTest {
 
     @Test
+    // Vérifie que equals retourne true si les id sont identiques
     void equals_shouldReturnTrue_whenSameId() {
         UserDetailsImpl user1 = new UserDetailsImpl(1L, "user1", "First", "Last", false, "password");
         UserDetailsImpl user2 = new UserDetailsImpl(1L, "user2", "Other", "Other", true, "otherpassword");
@@ -14,6 +15,7 @@ public class UserDetailsImplTest {
     }
 
     @Test
+    // Vérifie que equals retourne false si les id sont différents
     void equals_shouldReturnFalse_whenDifferentId() {
         UserDetailsImpl user1 = new UserDetailsImpl(1L, "user1", "First", "Last", false, "password");
         UserDetailsImpl user2 = new UserDetailsImpl(2L, "user2", "Other", "Other", true, "otherpassword");
@@ -21,18 +23,21 @@ public class UserDetailsImplTest {
     }
 
     @Test
+    // Vérifie que equals retourne false si l'autre objet est null
     void equals_shouldReturnFalse_whenOtherIsNull() {
         UserDetailsImpl user1 = new UserDetailsImpl(1L, "user1", "First", "Last", false, "password");
         assertNotEquals(user1, null);
     }
 
     @Test
+    // Vérifie que equals retourne true si c'est le même objet
     void equals_shouldReturnTrue_whenSameObject() {
         UserDetailsImpl user1 = new UserDetailsImpl(1L, "user1", "First", "Last", false, "password");
         assertEquals(user1, user1);
     }
 
     @Test
+    // Vérifie que equals retourne false si l'autre objet n'est pas de la même classe
     void equals_shouldReturnFalse_whenDifferentClass() {
         UserDetailsImpl user1 = new UserDetailsImpl(1L, "user1", "First", "Last", false, "password");
         Object other = new Object();

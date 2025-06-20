@@ -47,10 +47,10 @@ public class AuthControllerTest {
     @AfterEach
     void cleanup() {
         // Nettoyage si besoin (ex: reset mocks, données temporaires, etc.)
-        // Ici on peut faire reset des mocks si on veut (optionnel)
         reset(authenticationManager, passwordEncoder, jwtUtils, userRepository);
     }
 
+    // Vérifie qu'un utilisateur peut se connecter avec succès.
     @Test
     void authenticateUser_success() {
         LoginRequest loginRequest = new LoginRequest();
@@ -80,6 +80,7 @@ public class AuthControllerTest {
         assertFalse(jwt.getAdmin());
     }
 
+    // Vérifie que l'authentification échoue si l'utilisateur n'est pas trouvé.
     @Test
     void authenticateUser_userNotFound_setsIsAdminFalse() {
         LoginRequest loginRequest = new LoginRequest();
@@ -107,6 +108,7 @@ public class AuthControllerTest {
         assertFalse(jwt.getAdmin());
     }
 
+    // Vérifie que l'authentification échoue si le mot de passe est incorrect.
     @Test
     void authenticateUser_invalidPassword_throwsException() {
         LoginRequest loginRequest = new LoginRequest();
@@ -119,6 +121,7 @@ public class AuthControllerTest {
         assertThrows(BadCredentialsException.class, () -> controller.authenticateUser(loginRequest));
     }
 
+    // Vérifie que l'inscription d'un nouvel utilisateur fonctionne.
     @Test
     void registerUser_success() {
         SignupRequest signupRequest = new SignupRequest();
@@ -138,6 +141,7 @@ public class AuthControllerTest {
         verify(userRepository).save(any(User.class));
     }
 
+    // Vérifie que l'inscription échoue si l'email existe déjà.
     @Test
     void registerUser_emailAlreadyExists_shouldReturnBadRequest() {
         SignupRequest signupRequest = new SignupRequest();

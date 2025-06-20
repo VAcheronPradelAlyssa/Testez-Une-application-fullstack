@@ -38,6 +38,7 @@ class UserControllerTest {
         SecurityContextHolder.clearContext();
     }
 
+    // Vérifie qu'on récupère un utilisateur existant (200 attendu)
     @Test
     void testFindById_Success() {
         User user = new User();
@@ -58,6 +59,7 @@ class UserControllerTest {
         verify(userService).findById(1L);
     }
 
+    // Vérifie qu'on obtient 404 si l'utilisateur n'existe pas
     @Test
     void testFindById_UserNotFound() {
         when(userService.findById(1L)).thenReturn(null);
@@ -67,6 +69,7 @@ class UserControllerTest {
         assertEquals(404, response.getStatusCodeValue());
     }
 
+    // Vérifie qu'on obtient 400 si l'id n'est pas valide
     @Test
     void testFindById_InvalidId() {
         ResponseEntity<?> response = userController.findById("abc");
@@ -74,6 +77,7 @@ class UserControllerTest {
         assertEquals(400, response.getStatusCodeValue());
     }
 
+     // Vérifie que la suppression d'un utilisateur fonctionne (200 attendu)
     @Test
     void testDelete_Success() {
         User user = new User();
@@ -94,6 +98,7 @@ class UserControllerTest {
         verify(userService).delete(1L);
     }
 
+    // Vérifie qu'on obtient 404 si l'utilisateur à supprimer n'existe pas
     @Test
     void testDelete_UserNotFound() {
         UserDetails userDetails = new org.springframework.security.core.userdetails.User(
@@ -109,6 +114,7 @@ class UserControllerTest {
         assertEquals(404, response.getStatusCodeValue());
     }
 
+    // Vérifie qu'un utilisateur ne peut pas supprimer un autre utilisateur (401 attendu)
     @Test
     void testDelete_Unauthorized() {
         User user = new User();
@@ -128,6 +134,7 @@ class UserControllerTest {
         assertEquals(401, response.getStatusCodeValue());
     }
 
+    // Vérifie qu'on obtient 400 si l'id pour la suppression n'est pas valide
     @Test
     void testDelete_InvalidId() {
         UserDetails userDetails = new org.springframework.security.core.userdetails.User(

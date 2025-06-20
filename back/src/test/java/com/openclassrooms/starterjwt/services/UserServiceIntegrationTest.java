@@ -19,7 +19,7 @@ import java.util.Optional;
 
 @SpringJUnitConfig
 @DataJpaTest
-@AutoConfigureTestDatabase(replace = Replace.NONE) // Laisse H2 gérer automatiquement
+@AutoConfigureTestDatabase(replace = Replace.NONE)
 public class UserServiceIntegrationTest {
 
     @Autowired
@@ -40,6 +40,7 @@ public class UserServiceIntegrationTest {
         userRepository.deleteAll(); // 🔁 Nettoyage après chaque test
     }
     @Test
+    // Vérifie que findById retourne bien l'utilisateur recherché
     void testFindById_shouldReturnUser() {
         // Arrange
         User user = new User();
@@ -59,6 +60,7 @@ public class UserServiceIntegrationTest {
     }
 
     @Test
+    // Vérifie que delete supprime bien l'utilisateur de la base
     void testDelete_shouldRemoveUser() {
         // Arrange
         User user = new User();

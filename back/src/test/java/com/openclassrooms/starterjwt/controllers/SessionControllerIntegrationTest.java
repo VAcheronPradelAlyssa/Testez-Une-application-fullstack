@@ -87,6 +87,7 @@ class SessionControllerIntegrationTest {
     // Tests positifs
     // ------------------------
 
+    // Vérifie que l'on peut créer une session et la récupérer ensuite
     @Test
     @WithMockUser(username = "testuser", roles = {"USER"})
     void createAndGetSession_shouldReturnCreatedSession() throws Exception {
@@ -123,6 +124,7 @@ class SessionControllerIntegrationTest {
                 .andExpect(jsonPath("$.name").value("Session Test"));
     }
 
+    
     @Test
     @WithMockUser(username = "testuser", roles = {"USER"})
     void getAllSessions_shouldReturnListContainingSessions() throws Exception {
@@ -148,6 +150,7 @@ class SessionControllerIntegrationTest {
                 .andExpect(jsonPath("$[0].name").value("Session 1"));
     }
 
+    // Vérifie que l'on peut supprimer une session
     @Test
     @WithMockUser(username = "testuser", roles = {"USER"})
     void deleteSession_shouldRemoveSessionSuccessfully() throws Exception {
@@ -181,6 +184,7 @@ class SessionControllerIntegrationTest {
     // Tests négatifs (cas d'erreurs)
     // ------------------------
 
+    // Vérifie que l'on ne peut pas récupérer une session inexistante
     @Test
     @WithMockUser(username = "user", roles = {"USER"})
     void findById_notFound_shouldReturn404() throws Exception {
@@ -188,6 +192,7 @@ class SessionControllerIntegrationTest {
             .andExpect(status().isNotFound());
     }
 
+    // Vérifie qu'une requête avec un id invalide retourne une erreur 400
     @Test
     @WithMockUser(username = "user", roles = {"USER"})
     void findById_badRequest_shouldReturn400() throws Exception {
@@ -195,6 +200,7 @@ class SessionControllerIntegrationTest {
             .andExpect(status().isBadRequest());
     }
 
+   // Vérifie que la création d'une session sans champs obligatoires retourne une erreur 400 
     @Test
     @WithMockUser(username = "testuser", roles = {"USER"})
     void createSession_withMissingFields_shouldReturnBadRequest() throws Exception {
@@ -208,6 +214,7 @@ class SessionControllerIntegrationTest {
                 .andExpect(status().isBadRequest());
     }
 
+    // Vérifie que la création d'une session avec un teacher inexistant retourne 200 (comportement toléré)
     @Test
     @WithMockUser(username = "testuser", roles = {"USER"})
     void createSession_withInvalidTeacher_shouldReturnOk() throws Exception {
@@ -226,6 +233,7 @@ class SessionControllerIntegrationTest {
                 .andExpect(status().isOk());
     }
 
+    // Vérifie que la création d'une session avec un user inexistant retourne une erreur serveur ou exception
     @Test
     @WithMockUser(username = "testuser", roles = {"USER"})
     void createSession_withInvalidUser_shouldReturnServerErrorOrThrow() throws Exception {
@@ -252,6 +260,7 @@ class SessionControllerIntegrationTest {
         }
     }
 
+    // Vérifie que la suppression d'une session inexistante retourne 404
     @Test
     @WithMockUser(username = "testuser", roles = {"USER"})
     void deleteSession_notFound_shouldReturn404() throws Exception {
@@ -259,6 +268,7 @@ class SessionControllerIntegrationTest {
                 .andExpect(status().isNotFound());
     }
 
+    // Vérifie qu'un utilisateur non authentifié ne peut pas créer de session (401 attendu)
     @Test
     void unauthorizedUser_cannotCreateSession_shouldReturn401() throws Exception {
         SessionDto dto = new SessionDto();

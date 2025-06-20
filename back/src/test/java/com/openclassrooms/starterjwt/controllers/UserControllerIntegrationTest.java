@@ -52,6 +52,7 @@ class UserControllerIntegrationTest {
         userRepository.deleteAll();
     }
 
+    // Vérifie qu'on récupère un utilisateur existant (200 attendu)
     @Test
     @WithMockUser(username = "integration@test.com")
     void testFindById_Success() throws Exception {
@@ -64,6 +65,7 @@ class UserControllerIntegrationTest {
                 .andExpect(jsonPath("$.id", is(user.getId().intValue())));
     }
 
+    // Vérifie qu'on obtient 404 si l'utilisateur n'existe pas
     @Test
     @WithMockUser(username = "integration@test.com")
     void testFindById_NotFound() throws Exception {
@@ -72,6 +74,7 @@ class UserControllerIntegrationTest {
                 .andExpect(status().isNotFound());
     }
 
+    // Vérifie qu'on obtient 400 si l'id n'est pas valide
     @Test
     @WithMockUser(username = "integration@test.com")
     void testFindById_InvalidId() throws Exception {
@@ -80,6 +83,7 @@ class UserControllerIntegrationTest {
                 .andExpect(status().isBadRequest());
     }
 
+    // Vérifie que la suppression d'un utilisateur fonctionne (200 attendu)
     @Test
     @WithMockUser(username = "integration@test.com")
     void testDelete_Success() throws Exception {
@@ -90,7 +94,8 @@ class UserControllerIntegrationTest {
         mockMvc.perform(get("/api/user/" + savedUser.getId()))
                 .andExpect(status().isNotFound());
     }
-
+    
+    // Vérifie qu'un utilisateur ne peut pas supprimer un autre utilisateur (401 attendu)
     @Test
     @WithMockUser(username = "other@test.com")
     void testDelete_Unauthorized() throws Exception {
@@ -98,6 +103,7 @@ class UserControllerIntegrationTest {
                 .andExpect(status().isUnauthorized());
     }
 
+    // Vérifie qu'une suppression sans authentification retourne 401
     @Test
     void testDelete_Unauthenticated() throws Exception {
         mockMvc.perform(delete("/api/user/" + savedUser.getId()))
